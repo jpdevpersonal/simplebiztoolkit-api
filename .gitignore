@@ -1,0 +1,111 @@
+# Visual Studio / .NET / Visual Studio Code / Rider gitignore
+# Generated for Visual Studio projects targeting .NET 10
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Bb]in/
+[Oo]bj/
+**/[Bb]in/
+**/[Oo]bj/
+
+# Visual Studio temporary files, build results, and
+# other generated files
+.vs/
+.vscode/
+.vsconfig
+*.VC.db
+*.VC.opendb
+
+# DotNet artifacts
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.nupkg
+.nuget/
+packages/
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+
+# Test results
+[TestRr]esult*/
+TestResults/
+*.trx
+
+# Build logs
+*.log
+
+# Rider
+.idea/
+*.sln.iml
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Coverage and analysis
+*.coverage
+*.coveragexml
+*.profdata
+*.nprof
+
+# Publish outputs
+*.Publish.xml
+
+# Web / ASP.NET
+project.lock.json
+bower_components/
+node_modules/
+wwwroot/lib/
+
+# Azure Web App publish settings
+.publishsettings
+
+# Local sensitive files
+secrets.json
+appsettings.*.Local.json
+.env
+
+# SQL Server files
+*.mdf
+*.ldf
+
+# Rider caches, logs
+.idea/
+*.ipr
+*.iws
+
+# Others
+*.vsix
+*.dbmdl
+*.bak
+*.backup
+*.tmp
+
+# Generated code
+*.g.cs
+*.generated.cs
+
+# macOS
+.DS_Store
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Ignore Visual Studio Code workspace storage
+.vscode-test/
+
+# If using EF Core Migrations (optional)
+# Migrations snapshot files are usually committed; keep default behavior
+
+# End of file
