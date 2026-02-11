@@ -8,4 +8,5 @@ public class ProductCategory
     public string? Summary { get; set; }
     public string? HowThisHelps { get; set; }
     public string? HeroImage { get; set; }
+    public List<Product> Items { get; set; } = [];
 }
