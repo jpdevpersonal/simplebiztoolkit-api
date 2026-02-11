@@ -10,6 +10,7 @@ public class CreateProductDto
     public string? Image { get; set; }
     public string? EtsyUrl { get; set; }
     public string? Price { get; set; }
+    public string? ProductPageUrl { get; set; }
     public Guid CategoryId { get; set; }
     public string Status { get; set; } = "draft";
 }

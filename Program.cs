@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using simplebiztoolkit_api.Data;
 using simplebiztoolkit_api.Services;
 using System.Text;
 
@@ -43,7 +45,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddSingleton<IContentStore, InMemoryContentStore>();
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? "Server=JPLAPTOP;Database=simplebiztoolkit;Integrated Security=SSPI;TrustServerCertificate=True";
+
+builder.Services.AddDbContext<SimpleBizDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+builder.Services.AddScoped<IContentStore, EfContentStore>();
+builder.Services.AddScoped<SeedDataService>();
 builder.Services.AddSingleton<IAuthService, AuthService>();
 builder.Services.AddSingleton<IRevalidationService, RevalidationService>();
 builder.Services.AddHttpClient();
@@ -62,6 +71,15 @@ app.UseCors("DefaultCors");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<SimpleBizDbContext>();
+    await db.Database.MigrateAsync();
+
+    var seeder = scope.ServiceProvider.GetRequiredService<SeedDataService>();
+    await seeder.SeedAsync();
+}
 
 app.MapControllers();
 
