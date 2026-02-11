@@ -52,7 +52,6 @@ builder.Services.AddDbContext<SimpleBizDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped<IContentStore, EfContentStore>();
-builder.Services.AddScoped<SeedDataService>();
 builder.Services.AddSingleton<IAuthService, AuthService>();
 builder.Services.AddSingleton<IRevalidationService, RevalidationService>();
 builder.Services.AddHttpClient();
@@ -71,16 +70,6 @@ app.UseCors("DefaultCors");
 
 app.UseAuthentication();
 app.UseAuthorization();
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<SimpleBizDbContext>();
-    await db.Database.MigrateAsync();
-
-    var seeder = scope.ServiceProvider.GetRequiredService<SeedDataService>();
-    await seeder.SeedAsync();
-}
-
 app.MapControllers();
 
 app.Run();
