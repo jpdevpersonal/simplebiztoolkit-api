@@ -12,9 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+// Add Swashbuckle services required by UseSwagger/UseSwaggerUI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
-    ?? ["https://www.simplebiztoolkit.com", "http://localhost:3000"];
+    ?? ["https://www.simplebiztoolkit.com", "http://localhost:5117", "http://localhost:3000"];
 
 builder.Services.AddCors(options =>
 {
@@ -45,14 +48,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Server=JPLAPTOP;Database=simplebiztoolkit;Integrated Security=SSPI;TrustServerCertificate=True";
+// Read connection string from configuration (appsettings.json / appsettings.{Environment}.json / environment variables)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("Connection string 'DefaultConnection' was not found in configuration. Add it to appsettings.json or provide it via environment variables.");
+}
 
 builder.Services.AddDbContext<SimpleBizDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped<IContentStore, EfContentStore>();
-builder.Services.AddScoped<SeedDataService>();
 builder.Services.AddSingleton<IAuthService, AuthService>();
 builder.Services.AddSingleton<IRevalidationService, RevalidationService>();
 builder.Services.AddHttpClient();
@@ -62,25 +68,24 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    // Serve Swagger UI at application root in Development for convenience.
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+        c.RoutePrefix = string.Empty; // serve Swagger UI at "/"
+    });
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors("DefaultCors");
 
 app.UseAuthentication();
 app.UseAuthorization();
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<SimpleBizDbContext>();
-    await db.Database.MigrateAsync();
-
-    var seeder = scope.ServiceProvider.GetRequiredService<SeedDataService>();
-    await seeder.SeedAsync();
-}
-
 app.MapControllers();
 
 app.Run();
