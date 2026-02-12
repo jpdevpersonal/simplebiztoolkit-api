@@ -178,4 +178,11 @@ public class ProductsController : ApiControllerBase
             return ErrorResponse(ex.Message, StatusCodes.Status400BadRequest);
         }
     }
+
+    [HttpGet("health")]
+    public ActionResult Health()
+    {
+        return Ok();
+    }
 }
+
