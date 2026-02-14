@@ -13,6 +13,7 @@
 [Oo]bj/
 **/[Bb]in/
 **/[Oo]bj/
+**/out
 
 # Visual Studio temporary files, build results, and
 # other generated files
