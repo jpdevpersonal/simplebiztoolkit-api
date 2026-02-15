@@ -35,6 +35,25 @@ public class ProductsController : ApiControllerBase
         return Ok(new { data = categories });
     }
 
+    [HttpGet("allCategories")]
+    public ActionResult GetAllCategories()
+    {
+        var categories = _store.GetCategories().Select(category => new
+        {
+            category.Id,
+            category.Slug,
+            category.Name,
+            category.Summary,
+            category.HowThisHelps,
+            category.HeroImage,
+            items = _store.GetProducts()
+                .Where(product => product.CategoryId == category.Id)
+                .ToList()
+        });
+
+        return Ok(new { data = categories });
+    }
+
     [HttpGet("categories/slug/{slug}")]
     public ActionResult GetCategoryBySlug(string slug)
     {
@@ -73,6 +92,19 @@ public class ProductsController : ApiControllerBase
             return ErrorResponse("Product not found", StatusCodes.Status404NotFound);
         }
 
+        return Ok(new { data = product });
+    }
+
+    [HttpGet("{id:guid}")]
+    public ActionResult GetProductById(Guid id)
+    {
+        var product = _store.GetProductById(id);
+        if (product == null)
+        {
+            return ErrorResponse("Product not found", StatusCodes.Status404NotFound);
+        }
+
+        // Return the product regardless of its status
         return Ok(new { data = product });
     }
 
