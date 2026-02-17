@@ -18,13 +18,13 @@ public class ArticlesController : ApiControllerBase
     }
 
     [HttpGet]
-    public ActionResult GetAll([FromQuery] string? status)
+    public async Task<ActionResult> GetAll([FromQuery] string? status)
     {
         var isAuthenticated = User?.Identity?.IsAuthenticated == true;
 
         if (!isAuthenticated && !string.Equals(status, "published", StringComparison.OrdinalIgnoreCase))
         {
-            return ErrorResponse("Unauthorized", StatusCodes.Status401Unauthorized);
+            return await ErrorResponse("Unauthorized", StatusCodes.Status401Unauthorized);
         }
 
         var articles = _store.GetArticles(status, includeAll: isAuthenticated);
@@ -32,14 +32,14 @@ public class ArticlesController : ApiControllerBase
     }
 
     [HttpGet("slug/{slug}")]
-    public ActionResult GetBySlug(string slug)
+    public async Task<ActionResult> GetBySlug(string slug)
     {
         var article = _store.GetArticleBySlug(slug);
         var isAuthenticated = User?.Identity?.IsAuthenticated == true;
 
         if (article == null || (!isAuthenticated && !string.Equals(article.Status, "published", StringComparison.OrdinalIgnoreCase)))
         {
-            return ErrorResponse("Article not found", StatusCodes.Status404NotFound);
+            return await ErrorResponse("Article not found", StatusCodes.Status404NotFound);
         }
 
         return Ok(new { data = article });
@@ -47,12 +47,12 @@ public class ArticlesController : ApiControllerBase
 
     [HttpGet("{id:guid}")]
     [Authorize]
-    public ActionResult GetById(Guid id)
+    public async Task<ActionResult> GetById(Guid id)
     {
         var article = _store.GetArticleById(id);
         if (article == null)
         {
-            return ErrorResponse("Article not found", StatusCodes.Status404NotFound);
+            return await ErrorResponse("Article not found", StatusCodes.Status404NotFound);
         }
 
         return Ok(new { data = article });
@@ -64,7 +64,7 @@ public class ArticlesController : ApiControllerBase
     {
         if (string.IsNullOrWhiteSpace(dto.Slug) || string.IsNullOrWhiteSpace(dto.Title))
         {
-            return ErrorResponse("Slug and title are required.", StatusCodes.Status400BadRequest);
+            return await ErrorResponse("Slug and title are required.", StatusCodes.Status400BadRequest);
         }
 
         try
@@ -75,7 +75,7 @@ public class ArticlesController : ApiControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return ErrorResponse(ex.Message, StatusCodes.Status400BadRequest);
+            return  await ErrorResponse(ex.Message, StatusCodes.Status400BadRequest);
         }
     }
 
@@ -85,7 +85,7 @@ public class ArticlesController : ApiControllerBase
     {
         if (string.IsNullOrWhiteSpace(dto.Slug) || string.IsNullOrWhiteSpace(dto.Title))
         {
-            return ErrorResponse("Slug and title are required.", StatusCodes.Status400BadRequest);
+            return await ErrorResponse("Slug and title are required.", StatusCodes.Status400BadRequest);
         }
 
         try
@@ -93,7 +93,7 @@ public class ArticlesController : ApiControllerBase
             var article = _store.UpdateArticle(id, dto);
             if (article == null)
             {
-                return ErrorResponse("Article not found", StatusCodes.Status404NotFound);
+                return await ErrorResponse("Article not found", StatusCodes.Status404NotFound);
             }
 
             await _revalidationService.TriggerAsync("article", article.Slug, cancellationToken);
@@ -101,18 +101,18 @@ public class ArticlesController : ApiControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return ErrorResponse(ex.Message, StatusCodes.Status400BadRequest);
+            return await ErrorResponse(ex.Message, StatusCodes.Status400BadRequest);
         }
     }
 
     [HttpDelete("{id:guid}")]
     [Authorize]
-    public ActionResult Delete(Guid id)
+    public async Task<ActionResult> Delete(Guid id)
     {
         var removed = _store.DeleteArticle(id);
         if (!removed)
         {
-            return ErrorResponse("Article not found", StatusCodes.Status404NotFound);
+            return await ErrorResponse("Article not found", StatusCodes.Status404NotFound);
         }
 
         return Ok(new { success = true });

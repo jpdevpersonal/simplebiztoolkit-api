@@ -15,17 +15,17 @@ public class AuthController : ApiControllerBase
     }
 
     [HttpPost("login")]
-    public ActionResult Login([FromBody] LoginRequestDto request)
+    public async Task<ActionResult> Login([FromBody] LoginRequestDto request)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
         {
-            return ErrorResponse("Email and password are required.", StatusCodes.Status400BadRequest);
+            return await ErrorResponse("Email and password are required.", StatusCodes.Status400BadRequest);
         }
 
         var user = _authService.ValidateCredentials(request.Email, request.Password);
         if (user == null)
         {
-            return ErrorResponse("Invalid email or password.", StatusCodes.Status401Unauthorized);
+            return await ErrorResponse("Invalid email or password.", StatusCodes.Status401Unauthorized);
         }
 
         var token = _authService.GenerateToken(user);
