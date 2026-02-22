@@ -14,7 +14,7 @@ public class EfContentStore : IContentStore
         _db = db;
     }
 
-    public IEnumerable<Article> GetArticles(string? status, bool includeAll)
+    public async Task<List<Article>> GetArticlesAsync(string? status, bool includeAll, CancellationToken ct = default)
     {
         var query = _db.Articles.AsNoTracking();
 
@@ -27,18 +27,18 @@ public class EfContentStore : IContentStore
             query = query.Where(article => article.Status == "published");
         }
 
-        return query.OrderByDescending(article => article.DateISO).ToList();
+        return await query.OrderByDescending(article => article.DateISO).ToListAsync(ct);
     }
 
-    public Article? GetArticleById(Guid id)
-        => _db.Articles.AsNoTracking().FirstOrDefault(article => article.Id == id);
+    public Task<Article?> GetArticleByIdAsync(Guid id, CancellationToken ct = default)
+        => _db.Articles.AsNoTracking().FirstOrDefaultAsync(article => article.Id == id, ct);
 
-    public Article? GetArticleBySlug(string slug)
-        => _db.Articles.AsNoTracking().FirstOrDefault(article => article.Slug == slug);
+    public Task<Article?> GetArticleBySlugAsync(string slug, CancellationToken ct = default)
+        => _db.Articles.AsNoTracking().FirstOrDefaultAsync(article => article.Slug == slug, ct);
 
-    public Article AddArticle(CreateArticleDto dto)
+    public async Task<Article> AddArticleAsync(CreateArticleDto dto, CancellationToken ct = default)
     {
-        if (_db.Articles.Any(article => article.Slug == dto.Slug))
+        if (await _db.Articles.AnyAsync(article => article.Slug == dto.Slug, ct))
         {
             throw new InvalidOperationException("Article slug already exists.");
         }
@@ -67,20 +67,20 @@ public class EfContentStore : IContentStore
         };
 
         _db.Articles.Add(article);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync(ct);
         return article;
     }
 
-    public Article? UpdateArticle(Guid id, CreateArticleDto dto)
+    public async Task<Article?> UpdateArticleAsync(Guid id, CreateArticleDto dto, CancellationToken ct = default)
     {
-        var existing = _db.Articles.FirstOrDefault(article => article.Id == id);
+        var existing = await _db.Articles.FirstOrDefaultAsync(article => article.Id == id, ct);
         if (existing == null)
         {
             return null;
         }
 
         if (!string.Equals(existing.Slug, dto.Slug, StringComparison.OrdinalIgnoreCase)
-            && _db.Articles.Any(article => article.Id != id && article.Slug == dto.Slug))
+            && await _db.Articles.AnyAsync(article => article.Id != id && article.Slug == dto.Slug, ct))
         {
             throw new InvalidOperationException("Article slug already exists.");
         }
@@ -102,35 +102,35 @@ public class EfContentStore : IContentStore
         existing.CanonicalUrl = dto.CanonicalUrl;
         existing.DateModified = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync(ct);
         return existing;
     }
 
-    public bool DeleteArticle(Guid id)
+    public async Task<bool> DeleteArticleAsync(Guid id, CancellationToken ct = default)
     {
-        var article = _db.Articles.FirstOrDefault(item => item.Id == id);
+        var article = await _db.Articles.FirstOrDefaultAsync(item => item.Id == id, ct);
         if (article == null)
         {
             return false;
         }
 
         _db.Articles.Remove(article);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync(ct);
         return true;
     }
 
-    public IEnumerable<ProductCategory> GetCategories()
-        => _db.Categories.AsNoTracking().OrderBy(category => category.Name).ToList();
+    public Task<List<ProductCategory>> GetCategoriesAsync(CancellationToken ct = default)
+        => _db.Categories.AsNoTracking().OrderBy(category => category.Name).ToListAsync(ct);
 
-    public ProductCategory? GetCategoryById(Guid id)
-        => _db.Categories.AsNoTracking().FirstOrDefault(category => category.Id == id);
+    public Task<ProductCategory?> GetCategoryByIdAsync(Guid id, CancellationToken ct = default)
+        => _db.Categories.AsNoTracking().FirstOrDefaultAsync(category => category.Id == id, ct);
 
-    public ProductCategory? GetCategoryBySlug(string slug)
-        => _db.Categories.AsNoTracking().FirstOrDefault(category => category.Slug == slug);
+    public Task<ProductCategory?> GetCategoryBySlugAsync(string slug, CancellationToken ct = default)
+        => _db.Categories.AsNoTracking().FirstOrDefaultAsync(category => category.Slug == slug, ct);
 
-    public ProductCategory AddCategory(CreateCategoryDto dto)
+    public async Task<ProductCategory> AddCategoryAsync(CreateCategoryDto dto, CancellationToken ct = default)
     {
-        if (_db.Categories.Any(category => category.Slug == dto.Slug))
+        if (await _db.Categories.AnyAsync(category => category.Slug == dto.Slug, ct))
         {
             throw new InvalidOperationException("Category slug already exists.");
         }
@@ -146,20 +146,20 @@ public class EfContentStore : IContentStore
         };
 
         _db.Categories.Add(category);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync(ct);
         return category;
     }
 
-    public ProductCategory? UpdateCategory(Guid id, CreateCategoryDto dto)
+    public async Task<ProductCategory?> UpdateCategoryAsync(Guid id, CreateCategoryDto dto, CancellationToken ct = default)
     {
-        var existing = _db.Categories.FirstOrDefault(category => category.Id == id);
+        var existing = await _db.Categories.FirstOrDefaultAsync(category => category.Id == id, ct);
         if (existing == null)
         {
             return null;
         }
 
         if (!string.Equals(existing.Slug, dto.Slug, StringComparison.OrdinalIgnoreCase)
-            && _db.Categories.Any(category => category.Id != id && category.Slug == dto.Slug))
+            && await _db.Categories.AnyAsync(category => category.Id != id && category.Slug == dto.Slug, ct))
         {
             throw new InvalidOperationException("Category slug already exists.");
         }
@@ -170,36 +170,41 @@ public class EfContentStore : IContentStore
         existing.HowThisHelps = dto.HowThisHelps;
         existing.HeroImage = dto.HeroImage;
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync(ct);
         return existing;
     }
 
-    public IEnumerable<Product> GetProducts()
-        => _db.Products.AsNoTracking().ToList();
+    public Task<List<Product>> GetProductsAsync(CancellationToken ct = default)
+        => _db.Products.AsNoTracking().ToListAsync(ct);
 
-    public Product? GetProductById(Guid id)
-        => _db.Products.AsNoTracking().FirstOrDefault(product => product.Id == id);
-
-    public Product? GetProductBySlug(string categorySlug, string productSlug)
+    public Task<List<Product>> GetProductsByCategoryIdAsync(Guid categoryId, bool publishedOnly, CancellationToken ct = default)
     {
-        var category = _db.Categories.AsNoTracking().FirstOrDefault(item => item.Slug == categorySlug);
-        if (category == null)
+        var query = _db.Products.AsNoTracking().Where(product => product.CategoryId == categoryId);
+        if (publishedOnly)
         {
-            return null;
+            query = query.Where(product => product.Status == "published");
         }
-
-        return _db.Products.AsNoTracking()
-            .FirstOrDefault(product => product.CategoryId == category.Id && product.Slug == productSlug);
+        return query.ToListAsync(ct);
     }
 
-    public Product AddProduct(CreateProductDto dto)
+    public Task<Product?> GetProductByIdAsync(Guid id, CancellationToken ct = default)
+        => _db.Products.AsNoTracking().FirstOrDefaultAsync(product => product.Id == id, ct);
+
+    // Single-query lookup: avoids a separate round-trip to fetch the category first
+    public Task<Product?> GetProductBySlugAsync(string categorySlug, string productSlug, CancellationToken ct = default)
+        => _db.Products.AsNoTracking()
+            .Where(product => product.Slug == productSlug
+                && _db.Categories.Any(category => category.Id == product.CategoryId && category.Slug == categorySlug))
+            .FirstOrDefaultAsync(ct);
+
+    public async Task<Product> AddProductAsync(CreateProductDto dto, CancellationToken ct = default)
     {
-        if (!_db.Categories.Any(category => category.Id == dto.CategoryId))
+        if (!await _db.Categories.AnyAsync(category => category.Id == dto.CategoryId, ct))
         {
             throw new InvalidOperationException("Category not found.");
         }
 
-        if (_db.Products.Any(product => product.CategoryId == dto.CategoryId && product.Slug == dto.Slug))
+        if (await _db.Products.AnyAsync(product => product.CategoryId == dto.CategoryId && product.Slug == dto.Slug, ct))
         {
             throw new InvalidOperationException("Product slug already exists in this category.");
         }
@@ -221,24 +226,24 @@ public class EfContentStore : IContentStore
         };
 
         _db.Products.Add(product);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync(ct);
         return product;
     }
 
-    public Product? UpdateProduct(Guid id, CreateProductDto dto)
+    public async Task<Product?> UpdateProductAsync(Guid id, CreateProductDto dto, CancellationToken ct = default)
     {
-        var existing = _db.Products.FirstOrDefault(product => product.Id == id);
+        var existing = await _db.Products.FirstOrDefaultAsync(product => product.Id == id, ct);
         if (existing == null)
         {
             return null;
         }
 
-        if (!_db.Categories.Any(category => category.Id == dto.CategoryId))
+        if (!await _db.Categories.AnyAsync(category => category.Id == dto.CategoryId, ct))
         {
             throw new InvalidOperationException("Category not found.");
         }
 
-        if (_db.Products.Any(product => product.Id != id && product.CategoryId == dto.CategoryId && product.Slug == dto.Slug))
+        if (await _db.Products.AnyAsync(product => product.Id != id && product.CategoryId == dto.CategoryId && product.Slug == dto.Slug, ct))
         {
             throw new InvalidOperationException("Product slug already exists in this category.");
         }
@@ -255,20 +260,20 @@ public class EfContentStore : IContentStore
         existing.CategoryId = dto.CategoryId;
         existing.Status = dto.Status;
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync(ct);
         return existing;
     }
 
-    public bool DeleteProduct(Guid id)
+    public async Task<bool> DeleteProductAsync(Guid id, CancellationToken ct = default)
     {
-        var product = _db.Products.FirstOrDefault(item => item.Id == id);
+        var product = await _db.Products.FirstOrDefaultAsync(item => item.Id == id, ct);
         if (product == null)
         {
             return false;
         }
 
         _db.Products.Remove(product);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync(ct);
         return true;
     }
 }

@@ -18,7 +18,7 @@ public class ArticlesController : ApiControllerBase
     }
 
     [HttpGet]
-    public ActionResult GetAll([FromQuery] string? status)
+    public async Task<ActionResult> GetAll([FromQuery] string? status, CancellationToken cancellationToken)
     {
         var isAuthenticated = User?.Identity?.IsAuthenticated == true;
 
@@ -27,14 +27,14 @@ public class ArticlesController : ApiControllerBase
             return ErrorResponse("Unauthorized", StatusCodes.Status401Unauthorized);
         }
 
-        var articles = _store.GetArticles(status, includeAll: isAuthenticated);
+        var articles = await _store.GetArticlesAsync(status, includeAll: isAuthenticated, cancellationToken);
         return Ok(new { data = articles });
     }
 
     [HttpGet("slug/{slug}")]
-    public ActionResult GetBySlug(string slug)
+    public async Task<ActionResult> GetBySlug(string slug, CancellationToken cancellationToken)
     {
-        var article = _store.GetArticleBySlug(slug);
+        var article = await _store.GetArticleBySlugAsync(slug, cancellationToken);
         var isAuthenticated = User?.Identity?.IsAuthenticated == true;
 
         if (article == null || (!isAuthenticated && !string.Equals(article.Status, "published", StringComparison.OrdinalIgnoreCase)))
@@ -47,9 +47,9 @@ public class ArticlesController : ApiControllerBase
 
     [HttpGet("{id:guid}")]
     [Authorize]
-    public ActionResult GetById(Guid id)
+    public async Task<ActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var article = _store.GetArticleById(id);
+        var article = await _store.GetArticleByIdAsync(id, cancellationToken);
         if (article == null)
         {
             return ErrorResponse("Article not found", StatusCodes.Status404NotFound);
@@ -69,7 +69,7 @@ public class ArticlesController : ApiControllerBase
 
         try
         {
-            var article = _store.AddArticle(dto);
+            var article = await _store.AddArticleAsync(dto, cancellationToken);
             await _revalidationService.TriggerAsync("article", article.Slug, cancellationToken);
             return Ok(new { data = article });
         }
@@ -90,7 +90,7 @@ public class ArticlesController : ApiControllerBase
 
         try
         {
-            var article = _store.UpdateArticle(id, dto);
+            var article = await _store.UpdateArticleAsync(id, dto, cancellationToken);
             if (article == null)
             {
                 return ErrorResponse("Article not found", StatusCodes.Status404NotFound);
@@ -107,9 +107,9 @@ public class ArticlesController : ApiControllerBase
 
     [HttpDelete("{id:guid}")]
     [Authorize]
-    public ActionResult Delete(Guid id)
+    public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var removed = _store.DeleteArticle(id);
+        var removed = await _store.DeleteArticleAsync(id, cancellationToken);
         if (!removed)
         {
             return ErrorResponse("Article not found", StatusCodes.Status404NotFound);

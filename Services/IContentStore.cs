@@ -5,23 +5,24 @@ namespace simplebiztoolkit_api.Services;
 
 public interface IContentStore
 {
-    IEnumerable<Article> GetArticles(string? status, bool includeAll);
-    Article? GetArticleById(Guid id);
-    Article? GetArticleBySlug(string slug);
-    Article AddArticle(CreateArticleDto dto);
-    Article? UpdateArticle(Guid id, CreateArticleDto dto);
-    bool DeleteArticle(Guid id);
+    Task<List<Article>> GetArticlesAsync(string? status, bool includeAll, CancellationToken ct = default);
+    Task<Article?> GetArticleByIdAsync(Guid id, CancellationToken ct = default);
+    Task<Article?> GetArticleBySlugAsync(string slug, CancellationToken ct = default);
+    Task<Article> AddArticleAsync(CreateArticleDto dto, CancellationToken ct = default);
+    Task<Article?> UpdateArticleAsync(Guid id, CreateArticleDto dto, CancellationToken ct = default);
+    Task<bool> DeleteArticleAsync(Guid id, CancellationToken ct = default);
 
-    IEnumerable<ProductCategory> GetCategories();
-    ProductCategory? GetCategoryById(Guid id);
-    ProductCategory? GetCategoryBySlug(string slug);
-    ProductCategory AddCategory(CreateCategoryDto dto);
-    ProductCategory? UpdateCategory(Guid id, CreateCategoryDto dto);
+    Task<List<ProductCategory>> GetCategoriesAsync(CancellationToken ct = default);
+    Task<ProductCategory?> GetCategoryByIdAsync(Guid id, CancellationToken ct = default);
+    Task<ProductCategory?> GetCategoryBySlugAsync(string slug, CancellationToken ct = default);
+    Task<ProductCategory> AddCategoryAsync(CreateCategoryDto dto, CancellationToken ct = default);
+    Task<ProductCategory?> UpdateCategoryAsync(Guid id, CreateCategoryDto dto, CancellationToken ct = default);
 
-    IEnumerable<Product> GetProducts();
-    Product? GetProductById(Guid id);
-    Product? GetProductBySlug(string categorySlug, string productSlug);
-    Product AddProduct(CreateProductDto dto);
-    Product? UpdateProduct(Guid id, CreateProductDto dto);
-    bool DeleteProduct(Guid id);
+    Task<List<Product>> GetProductsAsync(CancellationToken ct = default);
+    Task<List<Product>> GetProductsByCategoryIdAsync(Guid categoryId, bool publishedOnly, CancellationToken ct = default);
+    Task<Product?> GetProductByIdAsync(Guid id, CancellationToken ct = default);
+    Task<Product?> GetProductBySlugAsync(string categorySlug, string productSlug, CancellationToken ct = default);
+    Task<Product> AddProductAsync(CreateProductDto dto, CancellationToken ct = default);
+    Task<Product?> UpdateProductAsync(Guid id, CreateProductDto dto, CancellationToken ct = default);
+    Task<bool> DeleteProductAsync(Guid id, CancellationToken ct = default);
 }

@@ -16,9 +16,12 @@ public class ProductsController : ApiControllerBase
     }
 
     [HttpGet("categories")]
-    public ActionResult GetCategories()
+    public async Task<ActionResult> GetCategories(CancellationToken cancellationToken)
     {
-        var categories = _store.GetCategories().Select(category => new
+        var categories = await _store.GetCategoriesAsync(cancellationToken);
+        var allProducts = await _store.GetProductsAsync(cancellationToken);
+
+        var result = categories.Select(category => new
         {
             category.Id,
             category.Slug,
@@ -26,19 +29,22 @@ public class ProductsController : ApiControllerBase
             category.Summary,
             category.HowThisHelps,
             category.HeroImage,
-            items = _store.GetProducts()
+            items = allProducts
                 .Where(product => product.CategoryId == category.Id
                     && string.Equals(product.Status, "published", StringComparison.OrdinalIgnoreCase))
                 .ToList()
         });
 
-        return Ok(new { data = categories });
+        return Ok(new { data = result });
     }
 
     [HttpGet("allCategories")]
-    public ActionResult GetAllCategories()
+    public async Task<ActionResult> GetAllCategories(CancellationToken cancellationToken)
     {
-        var categories = _store.GetCategories().Select(category => new
+        var categories = await _store.GetCategoriesAsync(cancellationToken);
+        var allProducts = await _store.GetProductsAsync(cancellationToken);
+
+        var result = categories.Select(category => new
         {
             category.Id,
             category.Slug,
@@ -46,27 +52,24 @@ public class ProductsController : ApiControllerBase
             category.Summary,
             category.HowThisHelps,
             category.HeroImage,
-            items = _store.GetProducts()
+            items = allProducts
                 .Where(product => product.CategoryId == category.Id)
                 .ToList()
         });
 
-        return Ok(new { data = categories });
+        return Ok(new { data = result });
     }
 
     [HttpGet("categories/slug/{slug}")]
-    public ActionResult GetCategoryBySlug(string slug)
+    public async Task<ActionResult> GetCategoryBySlug(string slug, CancellationToken cancellationToken)
     {
-        var category = _store.GetCategoryBySlug(slug);
+        var category = await _store.GetCategoryBySlugAsync(slug, cancellationToken);
         if (category == null)
         {
             return ErrorResponse("Category not found", StatusCodes.Status404NotFound);
         }
 
-        var items = _store.GetProducts()
-            .Where(product => product.CategoryId == category.Id
-                && string.Equals(product.Status, "published", StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        var items = await _store.GetProductsByCategoryIdAsync(category.Id, publishedOnly: true, cancellationToken);
 
         return Ok(new
         {
@@ -84,9 +87,9 @@ public class ProductsController : ApiControllerBase
     }
 
     [HttpGet("slug/{categorySlug}/{productSlug}")]
-    public ActionResult GetProductBySlug(string categorySlug, string productSlug)
+    public async Task<ActionResult> GetProductBySlug(string categorySlug, string productSlug, CancellationToken cancellationToken)
     {
-        var product = _store.GetProductBySlug(categorySlug, productSlug);
+        var product = await _store.GetProductBySlugAsync(categorySlug, productSlug, cancellationToken);
         if (product == null || !string.Equals(product.Status, "published", StringComparison.OrdinalIgnoreCase))
         {
             return ErrorResponse("Product not found", StatusCodes.Status404NotFound);
@@ -96,21 +99,20 @@ public class ProductsController : ApiControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    public ActionResult GetProductById(Guid id)
+    public async Task<ActionResult> GetProductById(Guid id, CancellationToken cancellationToken)
     {
-        var product = _store.GetProductById(id);
+        var product = await _store.GetProductByIdAsync(id, cancellationToken);
         if (product == null)
         {
             return ErrorResponse("Product not found", StatusCodes.Status404NotFound);
         }
 
-        // Return the product regardless of its status
         return Ok(new { data = product });
     }
 
     [HttpPost]
     [Authorize]
-    public ActionResult CreateProduct([FromBody] CreateProductDto dto)
+    public async Task<ActionResult> CreateProduct([FromBody] CreateProductDto dto, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Slug))
         {
@@ -119,7 +121,7 @@ public class ProductsController : ApiControllerBase
 
         try
         {
-            var product = _store.AddProduct(dto);
+            var product = await _store.AddProductAsync(dto, cancellationToken);
             return Ok(new { data = product });
         }
         catch (InvalidOperationException ex)
@@ -130,7 +132,7 @@ public class ProductsController : ApiControllerBase
 
     [HttpPut("{id:guid}")]
     [Authorize]
-    public ActionResult UpdateProduct(Guid id, [FromBody] CreateProductDto dto)
+    public async Task<ActionResult> UpdateProduct(Guid id, [FromBody] CreateProductDto dto, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Slug))
         {
@@ -139,7 +141,7 @@ public class ProductsController : ApiControllerBase
 
         try
         {
-            var product = _store.UpdateProduct(id, dto);
+            var product = await _store.UpdateProductAsync(id, dto, cancellationToken);
             if (product == null)
             {
                 return ErrorResponse("Product not found", StatusCodes.Status404NotFound);
@@ -155,9 +157,9 @@ public class ProductsController : ApiControllerBase
 
     [HttpDelete("{id:guid}")]
     [Authorize]
-    public ActionResult DeleteProduct(Guid id)
+    public async Task<ActionResult> DeleteProduct(Guid id, CancellationToken cancellationToken)
     {
-        var removed = _store.DeleteProduct(id);
+        var removed = await _store.DeleteProductAsync(id, cancellationToken);
         if (!removed)
         {
             return ErrorResponse("Product not found", StatusCodes.Status404NotFound);
@@ -168,7 +170,7 @@ public class ProductsController : ApiControllerBase
 
     [HttpPost("categories")]
     [Authorize]
-    public ActionResult CreateCategory([FromBody] CreateCategoryDto dto)
+    public async Task<ActionResult> CreateCategory([FromBody] CreateCategoryDto dto, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(dto.Slug) || string.IsNullOrWhiteSpace(dto.Name))
         {
@@ -177,7 +179,7 @@ public class ProductsController : ApiControllerBase
 
         try
         {
-            var category = _store.AddCategory(dto);
+            var category = await _store.AddCategoryAsync(dto, cancellationToken);
             return Ok(new { data = category });
         }
         catch (InvalidOperationException ex)
@@ -188,7 +190,7 @@ public class ProductsController : ApiControllerBase
 
     [HttpPut("categories/{id:guid}")]
     [Authorize]
-    public ActionResult UpdateCategory(Guid id, [FromBody] CreateCategoryDto dto)
+    public async Task<ActionResult> UpdateCategory(Guid id, [FromBody] CreateCategoryDto dto, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(dto.Slug) || string.IsNullOrWhiteSpace(dto.Name))
         {
@@ -197,7 +199,7 @@ public class ProductsController : ApiControllerBase
 
         try
         {
-            var category = _store.UpdateCategory(id, dto);
+            var category = await _store.UpdateCategoryAsync(id, dto, cancellationToken);
             if (category == null)
             {
                 return ErrorResponse("Category not found", StatusCodes.Status404NotFound);

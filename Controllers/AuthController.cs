@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using simplebiztoolkit_api.Dtos;
 using simplebiztoolkit_api.Services;
 
@@ -15,6 +16,7 @@ public class AuthController : ApiControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("auth")]
     public ActionResult Login([FromBody] LoginRequestDto request)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
