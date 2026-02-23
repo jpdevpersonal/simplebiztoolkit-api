@@ -174,6 +174,19 @@ public class EfContentStore : IContentStore
         return existing;
     }
 
+    public bool DeleteCategory(Guid id)
+    {
+        var category = _db.Categories.FirstOrDefault(item => item.Id == id);
+        if (category == null)
+        {
+            return false;
+        }
+
+        _db.Categories.Remove(category);
+        _db.SaveChanges();
+        return true;
+    }
+
     public IEnumerable<Product> GetProducts()
         => _db.Products.AsNoTracking().ToList();
 
