@@ -211,6 +211,19 @@ public class ProductsController : ApiControllerBase
         }
     }
 
+    [HttpDelete("categories/{id:guid}")]
+    [Authorize]
+    public async Task<ActionResult> Delete(Guid id)
+    {
+        var removed = _store.DeleteCategory(id);
+        if (!removed)
+        {
+            return await ErrorResponse("Category not found", StatusCodes.Status404NotFound);
+        }
+
+        return Ok(new { success = true });
+    }
+
     [HttpGet("health")]
     public async Task<ActionResult> Health()
     {

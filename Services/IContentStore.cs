@@ -17,6 +17,7 @@ public interface IContentStore
     ProductCategory? GetCategoryBySlug(string slug);
     ProductCategory AddCategory(CreateCategoryDto dto);
     ProductCategory? UpdateCategory(Guid id, CreateCategoryDto dto);
+    bool DeleteCategory(Guid id);
 
     IEnumerable<Product> GetProducts();
     Product? GetProductById(Guid id);
