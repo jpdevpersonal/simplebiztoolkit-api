@@ -40,6 +40,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="migrations\Create-Tables.sql\**" />
+    <Content Remove="migrations\Create-Tables.sql\**" />
+    <EmbeddedResource Remove="migrations\Create-Tables.sql\**" />
+    <None Remove="migrations\Create-Tables.sql\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include=".gitignore" />
   </ItemGroup>
 

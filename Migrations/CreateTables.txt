@@ -1,0 +1,195 @@
+﻿-- Recreate schema (only create if not exists)
+-- Run on the target database (SQL Server)
+
+-- Articles
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'Articles' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE dbo.Articles
+    (
+        Id uniqueidentifier NOT NULL PRIMARY KEY,
+        Slug nvarchar(450) NOT NULL,
+        Title nvarchar(max) NOT NULL,
+        Subtitle nvarchar(max) NULL,
+        Description nvarchar(max) NULL,
+        Content nvarchar(max) NULL,
+        DateISO datetime2 NOT NULL,
+        DateModified datetime2 NOT NULL,
+        Category nvarchar(max) NULL,
+        ReadingMinutes int NOT NULL,
+        Badges nvarchar(max) NOT NULL,
+        FeaturedImage nvarchar(max) NULL,
+        HeaderImage nvarchar(max) NULL,
+        Status nvarchar(450) NOT NULL,
+        SeoTitle nvarchar(max) NULL,
+        SeoDescription nvarchar(max) NULL,
+        OgImage nvarchar(max) NULL,
+        CanonicalUrl nvarchar(max) NULL
+    );
+
+    IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Articles_Slug' AND object_id = OBJECT_ID('dbo.Articles'))
+        CREATE UNIQUE INDEX IX_Articles_Slug ON dbo.Articles (Slug);
+
+    IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Articles_Status' AND object_id = OBJECT_ID('dbo.Articles'))
+        CREATE INDEX IX_Articles_Status ON dbo.Articles (Status);
+END
+GO
+
+-- Categories
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'Categories' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE dbo.Categories
+    (
+        Id uniqueidentifier NOT NULL PRIMARY KEY,
+        Slug nvarchar(450) NOT NULL,
+        Name nvarchar(max) NOT NULL,
+        Summary nvarchar(max) NULL,
+        HowThisHelps nvarchar(max) NULL,
+        HeroImage nvarchar(max) NULL
+    );
+
+    IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Categories_Slug' AND object_id = OBJECT_ID('dbo.Categories'))
+        CREATE UNIQUE INDEX IX_Categories_Slug ON dbo.Categories (Slug);
+END
+GO
+
+-- FeaturedProducts
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'FeaturedProducts' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE dbo.FeaturedProducts
+    (
+        Id uniqueidentifier NOT NULL PRIMARY KEY,
+        Title nvarchar(max) NOT NULL,
+        Problem nvarchar(max) NULL,
+        Bullets nvarchar(max) NOT NULL,
+        Image nvarchar(max) NULL,
+        EtsyUrl nvarchar(max) NULL,
+        Price nvarchar(max) NULL,
+        ProductPageUrl nvarchar(max) NULL
+    );
+END
+GO
+
+-- Products
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'Products' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE dbo.Products
+    (
+        Id uniqueidentifier NOT NULL PRIMARY KEY,
+        Title nvarchar(max) NOT NULL,
+        Slug nvarchar(450) NOT NULL,
+        Problem nvarchar(max) NULL,
+        Description nvarchar(max) NULL,
+        Bullets nvarchar(max) NOT NULL,
+        Image nvarchar(max) NULL,
+        EtsyUrl nvarchar(max) NULL,
+        Price nvarchar(max) NULL,
+        ProductPageUrl nvarchar(max) NULL,
+        CategoryId uniqueidentifier NOT NULL,
+        Status nvarchar(max) NOT NULL
+    );
+
+    IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Products_CategoryId' AND object_id = OBJECT_ID('dbo.Products'))
+        CREATE INDEX IX_Products_CategoryId ON dbo.Products (CategoryId);
+
+    IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Products_CategoryId_Slug' AND object_id = OBJECT_ID('dbo.Products'))
+        CREATE UNIQUE INDEX IX_Products_CategoryId_Slug ON dbo.Products (CategoryId, Slug);
+
+    IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Products_Slug' AND object_id = OBJECT_ID('dbo.Products'))
+        CREATE INDEX IX_Products_Slug ON dbo.Products (Slug);
+
+    -- FK to Categories
+    IF NOT EXISTS (
+        SELECT 1 FROM sys.foreign_keys
+        WHERE parent_object_id = OBJECT_ID('dbo.Products') AND referenced_object_id = OBJECT_ID('dbo.Categories'))
+    BEGIN
+        ALTER TABLE dbo.Products
+        ADD CONSTRAINT FK_Products_Categories_CategoryId
+        FOREIGN KEY (CategoryId) REFERENCES dbo.Categories (Id) ON DELETE CASCADE;
+    END
+END
+GO
+
+-- MenuItems
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'MenuItems' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE dbo.MenuItems
+    (
+        Id uniqueidentifier NOT NULL PRIMARY KEY,
+        Title nvarchar(max) NOT NULL,
+        Description nvarchar(max) NULL
+        -- Note: Status exists on the model; if you need to persist it here, add a column:
+        -- , Status nvarchar(450) NOT NULL DEFAULT 'draft'
+    );
+END
+GO
+
+-- MenuCategories
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'MenuCategories' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE dbo.MenuCategories
+    (
+        Id uniqueidentifier NOT NULL PRIMARY KEY,
+        MenuItemId uniqueidentifier NOT NULL,
+        Title nvarchar(max) NOT NULL,
+        Description nvarchar(max) NULL
+        -- If you need Status on the DB, add: , Status nvarchar(450) NOT NULL DEFAULT 'draft'
+    );
+
+    IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_MenuCategories_MenuItemId' AND object_id = OBJECT_ID('dbo.MenuCategories'))
+        CREATE INDEX IX_MenuCategories_MenuItemId ON dbo.MenuCategories (MenuItemId);
+
+    -- FK to MenuItems
+    IF NOT EXISTS (
+        SELECT 1 FROM sys.foreign_keys
+        WHERE parent_object_id = OBJECT_ID('dbo.MenuCategories') AND referenced_object_id = OBJECT_ID('dbo.MenuItems'))
+    BEGIN
+        ALTER TABLE dbo.MenuCategories
+        ADD CONSTRAINT FK_MenuCategories_MenuItems_MenuItemId
+        FOREIGN KEY (MenuItemId) REFERENCES dbo.MenuItems (Id) ON DELETE CASCADE;
+    END
+END
+GO
+
+-- MenuItemPages
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'MenuItemPages' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE dbo.MenuItemPages
+    (
+        Id uniqueidentifier NOT NULL PRIMARY KEY,
+        MenuCategoryId uniqueidentifier NOT NULL,
+        Slug nvarchar(450) NOT NULL,
+        Title nvarchar(max) NOT NULL,
+        Subtitle nvarchar(max) NULL,
+        Description nvarchar(max) NULL,
+        Content nvarchar(max) NULL,
+        DateISO datetime2 NOT NULL,
+        DateModified datetime2 NOT NULL,
+        Category nvarchar(max) NULL,
+        ReadingMinutes int NOT NULL,
+        Badges nvarchar(max) NOT NULL,
+        FeaturedImage nvarchar(max) NULL,
+        HeaderImage nvarchar(max) NULL,
+        Status nvarchar(450) NOT NULL,
+        SeoTitle nvarchar(max) NULL,
+        SeoDescription nvarchar(max) NULL,
+        OgImage nvarchar(max) NULL,
+        CanonicalUrl nvarchar(max) NULL
+    );
+
+    IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_MenuItemPages_MenuCategoryId' AND object_id = OBJECT_ID('dbo.MenuItemPages'))
+        CREATE INDEX IX_MenuItemPages_MenuCategoryId ON dbo.MenuItemPages (MenuCategoryId);
+
+    IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_MenuItemPages_Slug' AND object_id = OBJECT_ID('dbo.MenuItemPages'))
+        CREATE UNIQUE INDEX IX_MenuItemPages_Slug ON dbo.MenuItemPages (Slug);
+
+    -- FK to MenuCategories
+    IF NOT EXISTS (
+        SELECT 1 FROM sys.foreign_keys
+        WHERE parent_object_id = OBJECT_ID('dbo.MenuItemPages') AND referenced_object_id = OBJECT_ID('dbo.MenuCategories'))
+    BEGIN
+        ALTER TABLE dbo.MenuItemPages
+        ADD CONSTRAINT FK_MenuItemPages_MenuCategories_MenuCategoryId
+        FOREIGN KEY (MenuCategoryId) REFERENCES dbo.MenuCategories (Id) ON DELETE CASCADE;
+    END
+END
+GO
