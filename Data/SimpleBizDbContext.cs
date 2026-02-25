@@ -15,6 +15,9 @@ public class SimpleBizDbContext : DbContext
     public DbSet<ProductCategory> Categories => Set<ProductCategory>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<FeaturedProduct> FeaturedProducts => Set<FeaturedProduct>();
+    public DbSet<MenuItem> MenuItems => Set<MenuItem>();
+    public DbSet<MenuCategory> MenuCategories => Set<MenuCategory>();
+    public DbSet<MenuItemPage> MenuItemPages => Set<MenuItemPage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -61,6 +64,35 @@ public class SimpleBizDbContext : DbContext
         {
             entity.HasKey(featured => featured.Id);
             entity.Property(featured => featured.Bullets).HasConversion(listConverter);
+        });
+
+        modelBuilder.Entity<MenuItem>(entity =>
+        {
+            entity.HasKey(m => m.Id);
+            entity.Property(m => m.Title).IsRequired();
+        });
+
+        modelBuilder.Entity<MenuCategory>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.HasIndex(c => c.MenuItemId);
+            entity.Property(c => c.Title).IsRequired();
+            entity.HasOne(c => c.MenuItem)
+                .WithMany(m => m.Categories)
+                .HasForeignKey(c => c.MenuItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<MenuItemPage>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.HasIndex(p => p.Slug).IsUnique();
+            entity.HasIndex(p => p.MenuCategoryId);
+            entity.Property(p => p.DateISO).HasConversion(dateOnlyConverter);
+            entity.HasOne(p => p.MenuCategory)
+                .WithMany(c => c.Pages)
+                .HasForeignKey(p => p.MenuCategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Note: seeding via migrations was removed here to avoid referencing a missing EfTsSeedLoader.

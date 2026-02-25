@@ -59,6 +59,7 @@ builder.Services.AddDbContext<SimpleBizDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped<IContentStore, EfContentStore>();
+builder.Services.AddScoped<IMenuStore, EfMenuStore>();
 builder.Services.AddSingleton<IAuthService, AuthService>();
 builder.Services.AddSingleton<IRevalidationService, RevalidationService>();
 builder.Services.AddHttpClient();
