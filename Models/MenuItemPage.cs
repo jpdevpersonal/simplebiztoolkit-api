@@ -5,7 +5,8 @@ namespace simplebiztoolkit_api.Models;
 public class MenuItemPage
 {
     public Guid Id { get; set; }
-    public Guid MenuCategoryId { get; set; }
+    public Guid? MenuCategoryId { get; set; }
+    public Guid? MenuItemId { get; set; }
 
     public string Slug { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
@@ -24,4 +25,7 @@ public class MenuItemPage
 
     [JsonIgnore]
     public MenuCategory? MenuCategory { get; set; }
+
+    [JsonIgnore]
+    public MenuItem? MenuItem { get; set; }
 }

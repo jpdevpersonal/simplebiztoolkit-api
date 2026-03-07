@@ -5,7 +5,8 @@ namespace simplebiztoolkit_api.Dtos;
 public class CreateMenuItemPageDto
 {
     public Guid Id { get; set; }
-    public Guid MenuCategoryId { get; set; }
+    public Guid? MenuCategoryId { get; set; }
+    public Guid? MenuItemId { get; set; }
 
     public string Slug { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
