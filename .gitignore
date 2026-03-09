@@ -8,6 +8,10 @@
 *.userosscache
 *.sln.docstates
 
+# Development configuration
+appsettings.Development.json
+appsettings.Local.json
+
 # Build results
 [Bb]in/
 [Oo]bj/
