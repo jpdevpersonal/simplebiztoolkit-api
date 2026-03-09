@@ -88,11 +88,17 @@ public class SimpleBizDbContext : DbContext
             entity.HasKey(p => p.Id);
             entity.HasIndex(p => p.Slug).IsUnique();
             entity.HasIndex(p => p.MenuCategoryId);
+            entity.HasIndex(p => p.MenuItemId);
             entity.Property(p => p.DateISO).HasConversion(dateOnlyConverter);
             entity.HasOne(p => p.MenuCategory)
                 .WithMany(c => c.Pages)
                 .HasForeignKey(p => p.MenuCategoryId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(p => p.MenuItem)
+                .WithMany()
+                .HasForeignKey(p => p.MenuItemId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Note: seeding via migrations was removed here to avoid referencing a missing EfTsSeedLoader.

@@ -175,9 +175,20 @@ public class EfMenuStore : IMenuStore
 
     public async Task<MenuItemPage> AddMenuItemPageAsync(CreateMenuItemPageDto dto)
     {
-        if (!await _db.MenuCategories.AnyAsync(c => c.Id == dto.MenuCategoryId))
+        // A page can either belong to a MenuCategory, a MenuItem, or neither. It must not reference both.
+        if (dto.MenuCategoryId.HasValue && dto.MenuItemId.HasValue)
+        {
+            throw new InvalidOperationException("Page can only belong to either a MenuCategory or a MenuItem, not both.");
+        }
+
+        if (dto.MenuCategoryId.HasValue && !await _db.MenuCategories.AnyAsync(c => c.Id == dto.MenuCategoryId.Value))
         {
             throw new InvalidOperationException("MenuCategory not found.");
+        }
+
+        if (dto.MenuItemId.HasValue && !await _db.MenuItems.AnyAsync(m => m.Id == dto.MenuItemId.Value))
+        {
+            throw new InvalidOperationException("MenuItem not found.");
         }
 
         if (await _db.MenuItemPages.AnyAsync(p => p.Slug == dto.Slug))
@@ -190,6 +201,7 @@ public class EfMenuStore : IMenuStore
         {
             Id = Guid.NewGuid(),
             MenuCategoryId = dto.MenuCategoryId,
+            MenuItemId = dto.MenuItemId,
             Slug = dto.Slug,
             Title = dto.Title,
             Subtitle = dto.Subtitle,
@@ -219,9 +231,19 @@ public class EfMenuStore : IMenuStore
             return null;
         }
 
-        if (!await _db.MenuCategories.AnyAsync(c => c.Id == dto.MenuCategoryId))
+        if (dto.MenuCategoryId.HasValue && dto.MenuItemId.HasValue)
+        {
+            throw new InvalidOperationException("Page can only belong to either a MenuCategory or a MenuItem, not both.");
+        }
+
+        if (dto.MenuCategoryId.HasValue && !await _db.MenuCategories.AnyAsync(c => c.Id == dto.MenuCategoryId.Value))
         {
             throw new InvalidOperationException("MenuCategory not found.");
+        }
+
+        if (dto.MenuItemId.HasValue && !await _db.MenuItems.AnyAsync(m => m.Id == dto.MenuItemId.Value))
+        {
+            throw new InvalidOperationException("MenuItem not found.");
         }
 
         if (!string.Equals(existing.Slug, dto.Slug, StringComparison.OrdinalIgnoreCase)
@@ -231,6 +253,7 @@ public class EfMenuStore : IMenuStore
         }
 
         existing.MenuCategoryId = dto.MenuCategoryId;
+        existing.MenuItemId = dto.MenuItemId;
         existing.Slug = dto.Slug;
         existing.Title = dto.Title;
         existing.Subtitle = dto.Subtitle;
