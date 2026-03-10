@@ -42,7 +42,6 @@
 
   <ItemGroup>
     <Folder Include="scripts\" />
-    <Folder Include="Tests\" />
   </ItemGroup>
 
 </Project>
