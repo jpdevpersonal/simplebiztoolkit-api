@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using simplebiztoolkit_api.Dtos;
 using simplebiztoolkit_api.Services;
 
@@ -35,7 +36,9 @@ public class ProductsController : ApiControllerBase
         return Ok(new { data = categories });
     }
 
-    [HttpGet("allCategories")]
+    [HttpGet("/api/admin/categories")]
+    [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> GetAllCategories()
     {
         var categories = _store.GetCategories().Select(category => new
@@ -95,7 +98,9 @@ public class ProductsController : ApiControllerBase
         return Ok(new { data = product });
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("/api/admin/products/{id:guid}")]
+    [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> GetProductById(Guid id)
     {
         var product = _store.GetProductById(id);
@@ -108,8 +113,9 @@ public class ProductsController : ApiControllerBase
         return Ok(new { data = product });
     }
 
-    [HttpPost]
+    [HttpPost("/api/admin/products")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> CreateProduct([FromBody] CreateProductDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Slug))
@@ -117,19 +123,13 @@ public class ProductsController : ApiControllerBase
             return await ErrorResponse("Title and slug are required.", StatusCodes.Status400BadRequest);
         }
 
-        try
-        {
-            var product = _store.AddProduct(dto);
-            return Ok(new { data = product });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return await ErrorResponse(ex.Message, StatusCodes.Status400BadRequest);
-        }
+        var product = _store.AddProduct(dto);
+        return Ok(new { data = product });
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPut("/api/admin/products/{id:guid}")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> UpdateProduct(Guid id, [FromBody] CreateProductDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Slug))
@@ -137,24 +137,18 @@ public class ProductsController : ApiControllerBase
             return await ErrorResponse("Title and slug are required.", StatusCodes.Status400BadRequest);
         }
 
-        try
+        var product = _store.UpdateProduct(id, dto);
+        if (product == null)
         {
-            var product = _store.UpdateProduct(id, dto);
-            if (product == null)
-            {
-                return await ErrorResponse("Product not found", StatusCodes.Status404NotFound);
-            }
+            return await ErrorResponse("Product not found", StatusCodes.Status404NotFound);
+        }
 
-            return Ok(new { data = product });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return await ErrorResponse(ex.Message, StatusCodes.Status400BadRequest);
-        }
+        return Ok(new { data = product });
     }
 
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("/api/admin/products/{id:guid}")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> DeleteProduct(Guid id)
     {
         var removed = _store.DeleteProduct(id);
@@ -166,8 +160,9 @@ public class ProductsController : ApiControllerBase
         return Ok(new { success = true });
     }
 
-    [HttpPost("categories")]
+    [HttpPost("/api/admin/categories")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> CreateCategory([FromBody] CreateCategoryDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Slug) || string.IsNullOrWhiteSpace(dto.Name))
@@ -175,19 +170,13 @@ public class ProductsController : ApiControllerBase
             return await ErrorResponse("Slug and name are required.", StatusCodes.Status400BadRequest);
         }
 
-        try
-        {
-            var category = _store.AddCategory(dto);
-            return Ok(new { data = category });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return await ErrorResponse(ex.Message, StatusCodes.Status400BadRequest);
-        }
+        var category = _store.AddCategory(dto);
+        return Ok(new { data = category });
     }
 
-    [HttpPut("categories/{id:guid}")]
+    [HttpPut("/api/admin/categories/{id:guid}")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> UpdateCategory(Guid id, [FromBody] CreateCategoryDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Slug) || string.IsNullOrWhiteSpace(dto.Name))
@@ -195,24 +184,18 @@ public class ProductsController : ApiControllerBase
             return await ErrorResponse("Slug and name are required.", StatusCodes.Status400BadRequest);
         }
 
-        try
+        var category = _store.UpdateCategory(id, dto);
+        if (category == null)
         {
-            var category = _store.UpdateCategory(id, dto);
-            if (category == null)
-            {
-                return await ErrorResponse("Category not found", StatusCodes.Status404NotFound);
-            }
+            return await ErrorResponse("Category not found", StatusCodes.Status404NotFound);
+        }
 
-            return Ok(new { data = category });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return await ErrorResponse(ex.Message, StatusCodes.Status400BadRequest);
-        }
+        return Ok(new { data = category });
     }
 
-    [HttpDelete("categories/{id:guid}")]
+    [HttpDelete("/api/admin/categories/{id:guid}")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> Delete(Guid id)
     {
         var removed = _store.DeleteCategory(id);
@@ -224,10 +207,5 @@ public class ProductsController : ApiControllerBase
         return Ok(new { success = true });
     }
 
-    [HttpGet("health")]
-    public async Task<ActionResult> Health()
-    {
-        return Ok();
-    }
 }
 

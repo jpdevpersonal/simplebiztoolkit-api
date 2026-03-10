@@ -37,9 +37,16 @@ public class AuthService : IAuthService
 
     public string GenerateToken(AuthUser user)
     {
-        var jwtKey = _config["Auth:JwtKey"] ?? "dev-secret-change";
-        var jwtIssuer = _config["Auth:Issuer"] ?? "simplebiztoolkit-api";
-        var jwtAudience = _config["Auth:Audience"] ?? "simplebiztoolkit-api";
+        var jwtKey = _config["Auth:JwtKey"];
+        var jwtIssuer = _config["Auth:Issuer"];
+        var jwtAudience = _config["Auth:Audience"];
+
+        if (string.IsNullOrWhiteSpace(jwtKey)
+            || string.IsNullOrWhiteSpace(jwtIssuer)
+            || string.IsNullOrWhiteSpace(jwtAudience))
+        {
+            throw new InvalidOperationException("JWT auth configuration is missing.");
+        }
 
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);

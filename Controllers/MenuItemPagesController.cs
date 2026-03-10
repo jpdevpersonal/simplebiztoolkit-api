@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using simplebiztoolkit_api.Dtos;
 using simplebiztoolkit_api.Services;
 
@@ -18,13 +19,20 @@ public class MenuItemPagesController : ApiControllerBase
     [HttpGet]
     public async Task<ActionResult> GetAll([FromQuery] Guid? menuCategoryId, [FromQuery] string? status)
     {
-        var isAuthenticated = User?.Identity?.IsAuthenticated == true;
-
-        if (!isAuthenticated && !string.Equals(status, "published", StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(status, "published", StringComparison.OrdinalIgnoreCase))
         {
             status = "published";
         }
 
+        var pages = await _store.GetMenuItemPagesAsync(menuCategoryId, status);
+        return Ok(new { data = pages });
+    }
+
+    [HttpGet("/api/admin/pages")]
+    [Authorize]
+    [EnableRateLimiting("admin")]
+    public async Task<ActionResult> GetAllAdmin([FromQuery] Guid? menuCategoryId, [FromQuery] string? status)
+    {
         var pages = await _store.GetMenuItemPagesAsync(menuCategoryId, status);
         return Ok(new { data = pages });
     }
@@ -43,8 +51,9 @@ public class MenuItemPagesController : ApiControllerBase
         return Ok(new { data = page });
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("/api/admin/pages/{id:guid}")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> GetById(Guid id)
     {
         var page = await _store.GetMenuItemPageByIdAsync(id);
@@ -56,8 +65,9 @@ public class MenuItemPagesController : ApiControllerBase
         return Ok(new { data = page });
     }
 
-    [HttpPost]
+    [HttpPost("/api/admin/pages")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> Create([FromBody] CreateMenuItemPageDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Slug) || string.IsNullOrWhiteSpace(dto.Title))
@@ -65,19 +75,13 @@ public class MenuItemPagesController : ApiControllerBase
             return await ErrorResponse("Slug and title are required.", StatusCodes.Status400BadRequest);
         }
 
-        try
-        {
-            var page = await _store.AddMenuItemPageAsync(dto);
-            return Ok(new { data = page });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return await ErrorResponse(ex.Message, StatusCodes.Status400BadRequest);
-        }
+        var page = await _store.AddMenuItemPageAsync(dto);
+        return Ok(new { data = page });
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPut("/api/admin/pages/{id:guid}")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> Update(Guid id, [FromBody] CreateMenuItemPageDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Slug) || string.IsNullOrWhiteSpace(dto.Title))
@@ -85,24 +89,18 @@ public class MenuItemPagesController : ApiControllerBase
             return await ErrorResponse("Slug and title are required.", StatusCodes.Status400BadRequest);
         }
 
-        try
+        var page = await _store.UpdateMenuItemPageAsync(id, dto);
+        if (page == null)
         {
-            var page = await _store.UpdateMenuItemPageAsync(id, dto);
-            if (page == null)
-            {
-                return await ErrorResponse("Page not found", StatusCodes.Status404NotFound);
-            }
+            return await ErrorResponse("Page not found", StatusCodes.Status404NotFound);
+        }
 
-            return Ok(new { data = page });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return await ErrorResponse(ex.Message, StatusCodes.Status400BadRequest);
-        }
+        return Ok(new { data = page });
     }
 
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("/api/admin/pages/{id:guid}")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> Delete(Guid id)
     {
         var removed = await _store.DeleteMenuItemPageAsync(id);

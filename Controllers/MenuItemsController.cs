@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using simplebiztoolkit_api.Dtos;
 using simplebiztoolkit_api.Services;
 
@@ -22,6 +23,15 @@ public class MenuItemsController : ApiControllerBase
         return Ok(new { data = items });
     }
 
+    [HttpGet("/api/admin/menus")]
+    [Authorize]
+    [EnableRateLimiting("admin")]
+    public async Task<ActionResult> GetAllAdmin()
+    {
+        var items = await _store.GetMenuItemsAsync();
+        return Ok(new { data = items });
+    }
+
     [HttpGet("items-tree")]
     public async Task<ActionResult> GetItemAndChildren()
     {
@@ -29,7 +39,9 @@ public class MenuItemsController : ApiControllerBase
         return Ok(new { data = items });
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("/api/admin/menus/{id:guid}")]
+    [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> GetById(Guid id)
     {
         var item = await _store.GetMenuItemByIdAsync(id);
@@ -41,8 +53,9 @@ public class MenuItemsController : ApiControllerBase
         return Ok(new { data = item });
     }
 
-    [HttpPost]
+    [HttpPost("/api/admin/menus")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> Create([FromBody] CreateMenuItemDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Title))
@@ -54,8 +67,9 @@ public class MenuItemsController : ApiControllerBase
         return Ok(new { data = item });
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPut("/api/admin/menus/{id:guid}")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> Update(Guid id, [FromBody] CreateMenuItemDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Title))
@@ -72,8 +86,9 @@ public class MenuItemsController : ApiControllerBase
         return Ok(new { data = item });
     }
 
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("/api/admin/menus/{id:guid}")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> Delete(Guid id)
     {
         var removed = await _store.DeleteMenuItemAsync(id);

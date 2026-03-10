@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using simplebiztoolkit_api.Dtos;
 using simplebiztoolkit_api.Services;
 
@@ -22,7 +23,18 @@ public class MenuCategoriesController : ApiControllerBase
         return Ok(new { data = categories });
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("/api/admin/menucategories")]
+    [Authorize]
+    [EnableRateLimiting("admin")]
+    public async Task<ActionResult> GetAllAdmin([FromQuery] Guid? menuItemId)
+    {
+        var categories = await _store.GetMenuCategoriesAsync(menuItemId);
+        return Ok(new { data = categories });
+    }
+
+    [HttpGet("/api/admin/menucategories/{id:guid}")]
+    [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> GetById(Guid id)
     {
         var category = await _store.GetMenuCategoryByIdAsync(id);
@@ -34,8 +46,9 @@ public class MenuCategoriesController : ApiControllerBase
         return Ok(new { data = category });
     }
 
-    [HttpPost]
+    [HttpPost("/api/admin/menucategories")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> Create([FromBody] CreateMenuCategoryDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Title))
@@ -43,19 +56,13 @@ public class MenuCategoriesController : ApiControllerBase
             return await ErrorResponse("Title is required.", StatusCodes.Status400BadRequest);
         }
 
-        try
-        {
-            var category = await _store.AddMenuCategoryAsync(dto);
-            return Ok(new { data = category });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return await ErrorResponse(ex.Message, StatusCodes.Status400BadRequest);
-        }
+        var category = await _store.AddMenuCategoryAsync(dto);
+        return Ok(new { data = category });
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPut("/api/admin/menucategories/{id:guid}")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> Update(Guid id, [FromBody] CreateMenuCategoryDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Title))
@@ -63,24 +70,18 @@ public class MenuCategoriesController : ApiControllerBase
             return await ErrorResponse("Title is required.", StatusCodes.Status400BadRequest);
         }
 
-        try
+        var category = await _store.UpdateMenuCategoryAsync(id, dto);
+        if (category == null)
         {
-            var category = await _store.UpdateMenuCategoryAsync(id, dto);
-            if (category == null)
-            {
-                return await ErrorResponse("MenuCategory not found", StatusCodes.Status404NotFound);
-            }
+            return await ErrorResponse("MenuCategory not found", StatusCodes.Status404NotFound);
+        }
 
-            return Ok(new { data = category });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return await ErrorResponse(ex.Message, StatusCodes.Status400BadRequest);
-        }
+        return Ok(new { data = category });
     }
 
-    [HttpDelete("{id:guid}")]
+    [HttpDelete("/api/admin/menucategories/{id:guid}")]
     [Authorize]
+    [EnableRateLimiting("admin")]
     public async Task<ActionResult> Delete(Guid id)
     {
         var removed = await _store.DeleteMenuCategoryAsync(id);
