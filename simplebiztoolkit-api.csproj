@@ -37,6 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include=".github\workflows\ci.yml" />
     <None Include=".gitignore" />
   </ItemGroup>
 
