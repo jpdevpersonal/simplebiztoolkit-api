@@ -30,15 +30,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove=".github\**" />
     <Compile Remove="migrations\Create-Tables.sql\**" />
+    <Content Remove=".github\**" />
     <Content Remove="migrations\Create-Tables.sql\**" />
+    <EmbeddedResource Remove=".github\**" />
     <EmbeddedResource Remove="migrations\Create-Tables.sql\**" />
+    <None Remove=".github\**" />
     <None Remove="migrations\Create-Tables.sql\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include=".github\workflows\ci.yml" />
-    <None Include=".gitignore" />
   </ItemGroup>
 
   <ItemGroup>
