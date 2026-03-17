@@ -9,8 +9,8 @@
 *.sln.docstates
 
 # Development configuration
-appsettings.Development.json
-appsettings.Local.json
+**/appsettings.Development.json
+**/appsettings.Local.json
 
 # Build results
 [Bb]in/
