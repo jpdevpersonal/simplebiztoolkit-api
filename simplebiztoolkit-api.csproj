@@ -37,6 +37,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include=".github\workflows\api-staging-deploy.yml" />
+    <None Include=".github\workflows\api-staging-pr-validation.yml" />
     <None Include=".gitignore" />
   </ItemGroup>
 

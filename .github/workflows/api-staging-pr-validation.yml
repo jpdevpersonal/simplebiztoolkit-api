@@ -1,0 +1,49 @@
+name: API - Staging PR Validation
+
+on:
+  pull_request:
+    branches:
+      - staging
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  API_PROJECT_PATH: '.'
+  API_CSPROJ_PATH: './simplebiztoolkit-api.csproj'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore "${{ env.API_CSPROJ_PATH }}"
+
+      - name: Build
+        run: dotnet build "${{ env.API_CSPROJ_PATH }}" --configuration Release --no-restore
+
+      - name: Detect test projects
+        id: test_projects
+        shell: bash
+        run: |
+          count=$(find "${{ env.API_PROJECT_PATH }}" -type f \( -name "*Tests.csproj" -o -name "*.Tests.csproj" -o -name "*Test.csproj" -o -name "*.Test.csproj" \) | wc -l)
+          echo "count=$count" >> $GITHUB_OUTPUT
+
+      - name: Run tests
+        if: steps.test_projects.outputs.count != '0'
+        run: dotnet test "${{ env.API_CSPROJ_PATH }}" --configuration Release --no-build --verbosity normal
