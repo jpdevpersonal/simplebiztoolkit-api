@@ -1,10 +1,10 @@
 name: API - Deploy Staging to Azure
 
-on:
+"on":
   push:
     branches:
       - staging
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 permissions:
   id-token: write
@@ -65,6 +65,6 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-            app-name: simplebiztoolkit-api-test
-            publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-            package: ${{ env.PUBLISH_PATH }}
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ${{ env.PUBLISH_PATH }}
