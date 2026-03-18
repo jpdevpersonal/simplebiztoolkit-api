@@ -12,7 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{B11B386F-33AC-44A0-8C60-CE1760A89131}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\api-staging-pr-validation.yml = .github\workflows\api-staging-pr-validation.yml
-		api-staging-pr-validation.yml = api-staging-pr-validation.yml
+		api-deploy-to-staging.yml = api-deploy-to-staging.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "simplebiztoolkit-api", "simplebiztoolkit-api\simplebiztoolkit-api.csproj", "{9803D459-83E6-58BC-5D74-858F8665A2FA}"
