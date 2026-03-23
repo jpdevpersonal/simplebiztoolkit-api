@@ -14,6 +14,7 @@ public class SimpleBizDbContext : DbContext
     public DbSet<Article> Articles => Set<Article>();
     public DbSet<ProductCategory> Categories => Set<ProductCategory>();
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<ImageAsset> Images => Set<ImageAsset>();
     public DbSet<FeaturedProduct> FeaturedProducts => Set<FeaturedProduct>();
     public DbSet<MenuItem> MenuItems => Set<MenuItem>();
     public DbSet<MenuCategory> MenuCategories => Set<MenuCategory>();
@@ -64,6 +65,14 @@ public class SimpleBizDbContext : DbContext
         {
             entity.HasKey(featured => featured.Id);
             entity.Property(featured => featured.Bullets).HasConversion(listConverter);
+        });
+
+        modelBuilder.Entity<ImageAsset>(entity =>
+        {
+            entity.HasKey(image => image.Id);
+            entity.Property(image => image.Url).IsRequired();
+            entity.Property(image => image.BlobName).IsRequired();
+            entity.HasIndex(image => image.BlobName).IsUnique();
         });
 
         modelBuilder.Entity<MenuItem>(entity =>

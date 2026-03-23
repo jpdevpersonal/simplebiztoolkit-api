@@ -165,8 +165,10 @@ if (string.IsNullOrWhiteSpace(connectionString))
 builder.Services.AddDbContext<SimpleBizDbContext>(options =>
     options.UseSqlServer(connectionString));
 
+builder.Services.Configure<AzureBlobStorageOptions>(builder.Configuration.GetSection("AzureBlobStorage"));
 builder.Services.AddScoped<IContentStore, EfContentStore>();
 builder.Services.AddScoped<IMenuStore, EfMenuStore>();
+builder.Services.AddSingleton<IImageStorageService, AzureBlobImageStorageService>();
 builder.Services.AddSingleton<IAuthService, AuthService>();
 builder.Services.AddSingleton<IRevalidationService, RevalidationService>();
 builder.Services.AddHttpClient();
