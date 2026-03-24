@@ -98,6 +98,8 @@ public class SimpleBizDbContext : DbContext
             entity.HasIndex(p => p.Slug).IsUnique();
             entity.HasIndex(p => p.MenuCategoryId);
             entity.HasIndex(p => p.MenuItemId);
+            entity.HasIndex(p => p.FeaturedImageId);
+            entity.HasIndex(p => p.HeaderImageId);
             entity.Property(p => p.DateISO).HasConversion(dateOnlyConverter);
             entity.HasOne(p => p.MenuCategory)
                 .WithMany(c => c.Pages)
@@ -108,6 +110,16 @@ public class SimpleBizDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(p => p.MenuItemId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(p => p.FeaturedImageAsset)
+                .WithMany()
+                .HasForeignKey(p => p.FeaturedImageId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(p => p.HeaderImageAsset)
+                .WithMany()
+                .HasForeignKey(p => p.HeaderImageId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         // Note: seeding via migrations was removed here to avoid referencing a missing EfTsSeedLoader.

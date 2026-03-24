@@ -24,6 +24,10 @@ public class EfMenuStore : IMenuStore
             .AsNoTracking()
             .Include(m => m.Categories)
                 .ThenInclude(c => c.Pages)
+                    .ThenInclude(p => p.FeaturedImageAsset)
+            .Include(m => m.Categories)
+                .ThenInclude(c => c.Pages)
+                    .ThenInclude(p => p.HeaderImageAsset)
             .AsSplitQuery()
             .OrderBy(m => m.Title)
             .ToListAsync();
@@ -152,7 +156,7 @@ public class EfMenuStore : IMenuStore
 
     public async Task<IEnumerable<MenuItemPage>> GetMenuItemPagesAsync(Guid? menuCategoryId, string? status)
     {
-        var query = _db.MenuItemPages.AsNoTracking();
+        var query = BuildMenuItemPageQuery(asNoTracking: true);
 
         if (menuCategoryId.HasValue)
         {
@@ -168,10 +172,10 @@ public class EfMenuStore : IMenuStore
     }
 
     public async Task<MenuItemPage?> GetMenuItemPageByIdAsync(Guid id)
-        => await _db.MenuItemPages.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
+        => await BuildMenuItemPageQuery(asNoTracking: true).FirstOrDefaultAsync(p => p.Id == id);
 
     public async Task<MenuItemPage?> GetMenuItemPageBySlugAsync(string slug)
-        => await _db.MenuItemPages.AsNoTracking().FirstOrDefaultAsync(p => p.Slug == slug);
+        => await BuildMenuItemPageQuery(asNoTracking: true).FirstOrDefaultAsync(p => p.Slug == slug);
 
     public async Task<MenuItemPage> AddMenuItemPageAsync(CreateMenuItemPageDto dto)
     {
@@ -191,6 +195,16 @@ public class EfMenuStore : IMenuStore
             throw new InvalidOperationException("MenuItem not found.");
         }
 
+        if (dto.FeaturedImageId.HasValue && !await ImageAssetExistsAsync(dto.FeaturedImageId.Value))
+        {
+            throw new InvalidOperationException("Featured image not found.");
+        }
+
+        if (dto.HeaderImageId.HasValue && !await ImageAssetExistsAsync(dto.HeaderImageId.Value))
+        {
+            throw new InvalidOperationException("Header image not found.");
+        }
+
         if (await _db.MenuItemPages.AnyAsync(p => p.Slug == dto.Slug))
         {
             throw new InvalidOperationException("Page slug already exists.");
@@ -207,8 +221,8 @@ public class EfMenuStore : IMenuStore
             Subtitle = dto.Subtitle,
             Description = dto.Description,
             Content = dto.Content,
-            FeaturedImage = dto.FeaturedImage,
-            HeaderImage = dto.HeaderImage,
+            FeaturedImageId = dto.FeaturedImageId,
+            HeaderImageId = dto.HeaderImageId,
             Status = dto.Status,
             SeoTitle = dto.SeoTitle,
             SeoDescription = dto.SeoDescription,
@@ -220,7 +234,7 @@ public class EfMenuStore : IMenuStore
 
         _db.MenuItemPages.Add(page);
         await _db.SaveChangesAsync();
-        return page;
+        return await GetMenuItemPageByIdAsync(page.Id) ?? page;
     }
 
     public async Task<MenuItemPage?> UpdateMenuItemPageAsync(Guid id, CreateMenuItemPageDto dto)
@@ -246,6 +260,16 @@ public class EfMenuStore : IMenuStore
             throw new InvalidOperationException("MenuItem not found.");
         }
 
+        if (dto.FeaturedImageId.HasValue && !await ImageAssetExistsAsync(dto.FeaturedImageId.Value))
+        {
+            throw new InvalidOperationException("Featured image not found.");
+        }
+
+        if (dto.HeaderImageId.HasValue && !await ImageAssetExistsAsync(dto.HeaderImageId.Value))
+        {
+            throw new InvalidOperationException("Header image not found.");
+        }
+
         if (!string.Equals(existing.Slug, dto.Slug, StringComparison.OrdinalIgnoreCase)
             && await _db.MenuItemPages.AnyAsync(p => p.Id != id && p.Slug == dto.Slug))
         {
@@ -259,8 +283,8 @@ public class EfMenuStore : IMenuStore
         existing.Subtitle = dto.Subtitle;
         existing.Description = dto.Description;
         existing.Content = dto.Content;
-        existing.FeaturedImage = dto.FeaturedImage;
-        existing.HeaderImage = dto.HeaderImage;
+        existing.FeaturedImageId = dto.FeaturedImageId;
+        existing.HeaderImageId = dto.HeaderImageId;
         existing.Status = dto.Status;
         existing.SeoTitle = dto.SeoTitle;
         existing.SeoDescription = dto.SeoDescription;
@@ -269,7 +293,7 @@ public class EfMenuStore : IMenuStore
         existing.DateModified = System.DateTime.Now;
 
         await _db.SaveChangesAsync();
-        return existing;
+        return await GetMenuItemPageByIdAsync(existing.Id) ?? existing;
     }
 
     public async Task<bool> DeleteMenuItemPageAsync(Guid id)
@@ -283,5 +307,24 @@ public class EfMenuStore : IMenuStore
         _db.MenuItemPages.Remove(page);
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    private IQueryable<MenuItemPage> BuildMenuItemPageQuery(bool asNoTracking)
+    {
+        var query = _db.MenuItemPages
+            .Include(p => p.FeaturedImageAsset)
+            .Include(p => p.HeaderImageAsset);
+
+        return asNoTracking ? query.AsNoTracking() : query;
+    }
+
+    private async Task<bool> ImageAssetExistsAsync(Guid imageAssetId)
+    {
+        if (_db.Images.Local.Any(image => image.Id == imageAssetId))
+        {
+            return true;
+        }
+
+        return await _db.Images.AnyAsync(image => image.Id == imageAssetId);
     }
 }

@@ -15,8 +15,8 @@ public class CreateMenuItemPageDto
     public string? Content { get; set; }
     public DateOnly DateISO { get; set; }
     public DateTime DateModified { get; set; }
-    public string? FeaturedImage { get; set; }
-    public string? HeaderImage { get; set; }
+    public Guid? FeaturedImageId { get; set; }
+    public Guid? HeaderImageId { get; set; }
     public string Status { get; set; } = "draft";
     public string? SeoTitle { get; set; }
     public string? SeoDescription { get; set; }

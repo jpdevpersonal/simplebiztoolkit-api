@@ -199,6 +199,25 @@ public class ImagesController : ApiControllerBase
             return await ErrorResponse("Image not found", StatusCodes.Status404NotFound);
         }
 
+        var referencedPages = await _db.MenuItemPages
+            .Where(page => page.FeaturedImageId == id || page.HeaderImageId == id)
+            .ToListAsync(cancellationToken);
+
+        foreach (var page in referencedPages)
+        {
+            if (page.FeaturedImageId == id)
+            {
+                page.FeaturedImageId = null;
+            }
+
+            if (page.HeaderImageId == id)
+            {
+                page.HeaderImageId = null;
+            }
+
+            page.DateModified = DateTime.UtcNow;
+        }
+
         _db.Images.Remove(image);
         await _db.SaveChangesAsync(cancellationToken);
         await TryDeleteBlobAsync(image.BlobName, cancellationToken);
