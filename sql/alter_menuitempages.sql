@@ -46,8 +46,8 @@ CREATE TABLE dbo.MenuItemPages (
     Content NVARCHAR(MAX) NULL,
     DateISO DATETIME2 NOT NULL,
     DateModified DATETIME2 NOT NULL,
-    FeaturedImage NVARCHAR(MAX) NULL,
-    HeaderImage NVARCHAR(MAX) NULL,
+    FeaturedImageId UNIQUEIDENTIFIER NULL,
+    HeaderImageId UNIQUEIDENTIFIER NULL,
     Status NVARCHAR(50) NOT NULL DEFAULT('draft'),
     SeoTitle NVARCHAR(MAX) NULL,
     SeoDescription NVARCHAR(MAX) NULL,
@@ -65,8 +65,16 @@ ALTER TABLE dbo.MenuItemPages
 ALTER TABLE dbo.MenuItemPages
     ADD CONSTRAINT FK_MenuItemPages_MenuItems FOREIGN KEY (MenuItemId) REFERENCES dbo.MenuItems(Id) ON DELETE NO ACTION;
 
+ALTER TABLE dbo.MenuItemPages
+    ADD CONSTRAINT FK_MenuItemPages_Images_FeaturedImageId FOREIGN KEY (FeaturedImageId) REFERENCES dbo.Images(Id) ON DELETE NO ACTION;
+
+ALTER TABLE dbo.MenuItemPages
+    ADD CONSTRAINT FK_MenuItemPages_Images_HeaderImageId FOREIGN KEY (HeaderImageId) REFERENCES dbo.Images(Id) ON DELETE NO ACTION;
+
 CREATE NONCLUSTERED INDEX IX_MenuItemPages_MenuCategoryId ON dbo.MenuItemPages(MenuCategoryId);
 CREATE NONCLUSTERED INDEX IX_MenuItemPages_MenuItemId ON dbo.MenuItemPages(MenuItemId);
+CREATE NONCLUSTERED INDEX IX_MenuItemPages_FeaturedImageId ON dbo.MenuItemPages(FeaturedImageId);
+CREATE NONCLUSTERED INDEX IX_MenuItemPages_HeaderImageId ON dbo.MenuItemPages(HeaderImageId);
 
 COMMIT TRANSACTION;
 

@@ -1,14 +1,12 @@
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http;
 
-namespace simplebiztoolkit_api.Models;
+namespace simplebiztoolkit_api.Dtos;
 
-public class MenuItemPage
+public class CreateMenuItemPageFormDto
 {
     public Guid Id { get; set; }
     public Guid? MenuCategoryId { get; set; }
     public Guid? MenuItemId { get; set; }
-
     public string Slug { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string? Subtitle { get; set; }
@@ -23,22 +21,6 @@ public class MenuItemPage
     public string? SeoDescription { get; set; }
     public string? OgImage { get; set; }
     public string? CanonicalUrl { get; set; }
-
-    [NotMapped]
-    public string? FeaturedImage => FeaturedImageAsset?.Url;
-
-    [NotMapped]
-    public string? HeaderImage => HeaderImageAsset?.Url;
-
-    [JsonIgnore]
-    public MenuCategory? MenuCategory { get; set; }
-
-    [JsonIgnore]
-    public MenuItem? MenuItem { get; set; }
-
-    [JsonIgnore]
-    public ImageAsset? FeaturedImageAsset { get; set; }
-
-    [JsonIgnore]
-    public ImageAsset? HeaderImageAsset { get; set; }
+    public IFormFile? FeaturedImageFile { get; set; }
+    public IFormFile? HeaderImageFile { get; set; }
 }
