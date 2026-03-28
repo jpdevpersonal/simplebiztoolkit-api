@@ -12,7 +12,7 @@ namespace simplebiztoolkit_api.Controllers;
 [Route("api/images")]
 public class ImagesController : ApiControllerBase
 {
-    private const long MaxFileSizeBytes = 2 * 1024 * 1024;
+    private const long MaxFileSizeBytes = 3 * 1024 * 1024;
     private static readonly HashSet<string> AllowedContentTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         "image/jpeg",
