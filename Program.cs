@@ -165,8 +165,25 @@ if (string.IsNullOrWhiteSpace(connectionString))
 builder.Services.AddDbContext<SimpleBizDbContext>(options =>
     options.UseSqlServer(connectionString));
 
+builder.Services.Configure<AzureBlobStorageOptions>(options =>
+{
+    builder.Configuration.GetSection("AzureBlobStorage").Bind(options);
+
+    var flatConnectionString = builder.Configuration["AzureBlobStorageConnectionString"];
+    if (!string.IsNullOrWhiteSpace(flatConnectionString))
+    {
+        options.ConnectionString = flatConnectionString;
+    }
+
+    var flatContainerName = builder.Configuration["AzureBlobStorageContainerName"];
+    if (!string.IsNullOrWhiteSpace(flatContainerName))
+    {
+        options.ContainerName = flatContainerName;
+    }
+});
 builder.Services.AddScoped<IContentStore, EfContentStore>();
 builder.Services.AddScoped<IMenuStore, EfMenuStore>();
+builder.Services.AddSingleton<IImageStorageService, AzureBlobImageStorageService>();
 builder.Services.AddSingleton<IAuthService, AuthService>();
 builder.Services.AddSingleton<IRevalidationService, RevalidationService>();
 builder.Services.AddHttpClient();

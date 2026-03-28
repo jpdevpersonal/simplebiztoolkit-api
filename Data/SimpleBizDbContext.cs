@@ -14,6 +14,7 @@ public class SimpleBizDbContext : DbContext
     public DbSet<Article> Articles => Set<Article>();
     public DbSet<ProductCategory> Categories => Set<ProductCategory>();
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<ImageAsset> Images => Set<ImageAsset>();
     public DbSet<FeaturedProduct> FeaturedProducts => Set<FeaturedProduct>();
     public DbSet<MenuItem> MenuItems => Set<MenuItem>();
     public DbSet<MenuCategory> MenuCategories => Set<MenuCategory>();
@@ -66,6 +67,14 @@ public class SimpleBizDbContext : DbContext
             entity.Property(featured => featured.Bullets).HasConversion(listConverter);
         });
 
+        modelBuilder.Entity<ImageAsset>(entity =>
+        {
+            entity.HasKey(image => image.Id);
+            entity.Property(image => image.Url).IsRequired();
+            entity.Property(image => image.BlobName).IsRequired();
+            entity.HasIndex(image => image.BlobName).IsUnique();
+        });
+
         modelBuilder.Entity<MenuItem>(entity =>
         {
             entity.HasKey(m => m.Id);
@@ -89,6 +98,8 @@ public class SimpleBizDbContext : DbContext
             entity.HasIndex(p => p.Slug).IsUnique();
             entity.HasIndex(p => p.MenuCategoryId);
             entity.HasIndex(p => p.MenuItemId);
+            entity.HasIndex(p => p.FeaturedImageId);
+            entity.HasIndex(p => p.HeaderImageId);
             entity.Property(p => p.DateISO).HasConversion(dateOnlyConverter);
             entity.HasOne(p => p.MenuCategory)
                 .WithMany(c => c.Pages)
@@ -99,6 +110,16 @@ public class SimpleBizDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(p => p.MenuItemId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(p => p.FeaturedImageAsset)
+                .WithMany()
+                .HasForeignKey(p => p.FeaturedImageId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(p => p.HeaderImageAsset)
+                .WithMany()
+                .HasForeignKey(p => p.HeaderImageId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         // Note: seeding via migrations was removed here to avoid referencing a missing EfTsSeedLoader.
