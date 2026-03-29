@@ -18,7 +18,7 @@ public interface IMenuStore
     Task<MenuCategory?> UpdateMenuCategoryAsync(Guid id, CreateMenuCategoryDto dto);
     Task<bool> DeleteMenuCategoryAsync(Guid id);
 
-    Task<IEnumerable<MenuItemPage>> GetMenuItemPagesAsync(Guid? menuCategoryId, string? status);
+    Task<IEnumerable<MenuItemPage>> GetMenuItemPagesAsync(Guid? menuCategoryId = null, string? status = null, Guid? menuItemId = null);
     Task<MenuItemPage?> GetMenuItemPageByIdAsync(Guid id);
     Task<MenuItemPage?> GetMenuItemPageBySlugAsync(string slug);
     Task<MenuItemPage> AddMenuItemPageAsync(CreateMenuItemPageDto dto);
@@ -27,4 +27,5 @@ public interface IMenuStore
 
     Task<MenuLayoutSettingsDto> GetMenuLayoutSettingsAsync(string menuKey);
     Task<MenuLayoutSettingsDto> UpsertMenuLayoutSettingsAsync(UpsertMenuLayoutSettingsDto dto);
+
 }

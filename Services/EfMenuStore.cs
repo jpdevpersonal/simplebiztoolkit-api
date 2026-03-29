@@ -154,18 +154,23 @@ public class EfMenuStore : IMenuStore
 
     // ── MenuItemPage ──────────────────────────────────────────────────────────
 
-    public async Task<IEnumerable<MenuItemPage>> GetMenuItemPagesAsync(Guid? menuCategoryId, string? status)
+    public async Task<IEnumerable<MenuItemPage>> GetMenuItemPagesAsync(Guid? menuCategoryId = null, string? status = null, Guid? menuItemId = null)
     {
         var query = BuildMenuItemPageQuery(asNoTracking: true);
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = query.Where(p => p.Status == status);
+        }
 
         if (menuCategoryId.HasValue)
         {
             query = query.Where(p => p.MenuCategoryId == menuCategoryId.Value);
         }
 
-        if (!string.IsNullOrWhiteSpace(status))
+        else if (menuItemId.HasValue)
         {
-            query = query.Where(p => p.Status == status);
+            query = query.Where(p => p.MenuItemId == menuItemId.Value && p.MenuCategoryId == null);
         }
 
         return await query.OrderByDescending(p => p.DateISO).ToListAsync();
