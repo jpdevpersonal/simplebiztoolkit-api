@@ -309,6 +309,64 @@ public class EfMenuStore : IMenuStore
         return true;
     }
 
+    // ── MenuLayoutSettings ───────────────────────────────────────────────────
+
+    public async Task<MenuLayoutSettingsDto> GetMenuLayoutSettingsAsync(string menuKey)
+    {
+        var key = string.IsNullOrWhiteSpace(menuKey) ? "primary" : menuKey.Trim();
+        var settings = await _db.MenuLayoutSettings
+            .AsNoTracking()
+            .FirstOrDefaultAsync(layout => layout.MenuKey == key);
+
+        return settings is null
+            ? new MenuLayoutSettingsDto
+            {
+                MenuKey = key,
+                OrderedMenuItemIds = [],
+                IsActive = true,
+                Version = 1
+            }
+            : MapToDto(settings);
+    }
+
+    public async Task<MenuLayoutSettingsDto> UpsertMenuLayoutSettingsAsync(UpsertMenuLayoutSettingsDto dto)
+    {
+        var key = dto.MenuKey.Trim();
+        var existing = await _db.MenuLayoutSettings
+            .FirstOrDefaultAsync(layout => layout.MenuKey == key);
+        var now = DateTime.UtcNow;
+
+        if (existing is null)
+        {
+            var created = new MenuLayoutSettings
+            {
+                Id = Guid.NewGuid(),
+                MenuKey = key,
+                OrderedMenuItemIds = [.. dto.OrderedMenuItemIds],
+                IsActive = dto.IsActive,
+                Version = dto.Version > 0 ? dto.Version : 1,
+                CreatedAt = now,
+                UpdatedAt = now,
+                UpdatedBy = dto.UpdatedBy
+            };
+
+            _db.MenuLayoutSettings.Add(created);
+            await _db.SaveChangesAsync();
+            return MapToDto(created);
+        }
+
+        existing.OrderedMenuItemIds = [.. dto.OrderedMenuItemIds];
+        existing.IsActive = dto.IsActive;
+        existing.Version = dto.Version > 0
+            ? Math.Max(existing.Version + 1, dto.Version)
+            : existing.Version + 1;
+        existing.UpdatedAt = now;
+        existing.UpdatedBy = dto.UpdatedBy;
+
+        await _db.SaveChangesAsync();
+        return MapToDto(existing);
+    }
+
     private IQueryable<MenuItemPage> BuildMenuItemPageQuery(bool asNoTracking)
     {
         var query = _db.MenuItemPages
@@ -327,4 +385,16 @@ public class EfMenuStore : IMenuStore
 
         return await _db.Images.AnyAsync(image => image.Id == imageAssetId);
     }
+
+    private static MenuLayoutSettingsDto MapToDto(MenuLayoutSettings settings)
+        => new()
+        {
+            MenuKey = settings.MenuKey,
+            OrderedMenuItemIds = [.. settings.OrderedMenuItemIds],
+            IsActive = settings.IsActive,
+            Version = settings.Version,
+            CreatedAt = settings.CreatedAt,
+            UpdatedAt = settings.UpdatedAt,
+            UpdatedBy = settings.UpdatedBy
+        };
 }

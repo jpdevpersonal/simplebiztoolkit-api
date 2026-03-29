@@ -35,12 +35,17 @@
     <Content Remove="migrations\Create-Tables.sql\**" />
     <EmbeddedResource Remove="migrations\Create-Tables.sql\**" />
     <None Remove="migrations\Create-Tables.sql\**" />
+    <Compile Remove="tests\**\*.cs" />
+    <Content Remove="tests\**\*" />
+    <EmbeddedResource Remove="tests\**\*" />
+    <None Remove="tests\**\*" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include=".github\workflows\api-staging-deploy.yml" />
     <None Include=".github\workflows\api-staging-pr-validation.yml" />
     <None Include=".gitignore" />
+    <None Include="tests\simplebiztoolkit-api.Tests\simplebiztoolkit-api.Tests.csproj" />
   </ItemGroup>
 
 </Project>

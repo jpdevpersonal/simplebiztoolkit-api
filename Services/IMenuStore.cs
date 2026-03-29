@@ -24,4 +24,7 @@ public interface IMenuStore
     Task<MenuItemPage> AddMenuItemPageAsync(CreateMenuItemPageDto dto);
     Task<MenuItemPage?> UpdateMenuItemPageAsync(Guid id, CreateMenuItemPageDto dto);
     Task<bool> DeleteMenuItemPageAsync(Guid id);
+
+    Task<MenuLayoutSettingsDto> GetMenuLayoutSettingsAsync(string menuKey);
+    Task<MenuLayoutSettingsDto> UpsertMenuLayoutSettingsAsync(UpsertMenuLayoutSettingsDto dto);
 }
