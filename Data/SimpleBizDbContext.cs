@@ -19,6 +19,7 @@ public class SimpleBizDbContext : DbContext
     public DbSet<MenuItem> MenuItems => Set<MenuItem>();
     public DbSet<MenuCategory> MenuCategories => Set<MenuCategory>();
     public DbSet<MenuItemPage> MenuItemPages => Set<MenuItemPage>();
+    public DbSet<MenuLayoutSettings> MenuLayoutSettings => Set<MenuLayoutSettings>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -120,6 +121,29 @@ public class SimpleBizDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(p => p.HeaderImageId)
                 .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<MenuLayoutSettings>(entity =>
+        {
+            entity.HasKey(layout => layout.Id);
+            entity.Property(layout => layout.Id)
+                .HasDefaultValueSql("NEWSEQUENTIALID()");
+            entity.Property(layout => layout.MenuKey)
+                .HasMaxLength(100)
+                .IsRequired();
+            entity.HasIndex(layout => layout.MenuKey).IsUnique();
+            entity.Property(layout => layout.OrderedMenuItemIds)
+                .HasConversion(listConverter)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+            entity.Property(layout => layout.IsActive)
+                .HasDefaultValue(true)
+                .IsRequired();
+            entity.Property(layout => layout.Version)
+                .HasDefaultValue(1)
+                .IsRequired();
+            entity.Property(layout => layout.UpdatedBy)
+                .HasMaxLength(320);
         });
 
         // Note: seeding via migrations was removed here to avoid referencing a missing EfTsSeedLoader.
