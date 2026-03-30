@@ -11,7 +11,6 @@ public class SimpleBizDbContext : DbContext
     {
     }
 
-    public DbSet<Article> Articles => Set<Article>();
     public DbSet<ProductCategory> Categories => Set<ProductCategory>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<ImageAsset> Images => Set<ImageAsset>();
@@ -32,16 +31,6 @@ public class SimpleBizDbContext : DbContext
             json => string.IsNullOrWhiteSpace(json)
                 ? new List<string>()
                 : JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>());
-
-        modelBuilder.Entity<Article>(entity =>
-        {
-            entity.HasKey(article => article.Id);
-            entity.HasIndex(article => article.Slug).IsUnique();
-            entity.HasIndex(article => article.Status);
-            entity.Property(article => article.DateISO).HasConversion(dateOnlyConverter);
-            entity.Property(article => article.DateModified).HasConversion(dateOnlyConverter);
-            entity.Property(article => article.Badges).HasConversion(listConverter);
-        });
 
         modelBuilder.Entity<ProductCategory>(entity =>
         {
