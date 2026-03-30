@@ -38,23 +38,23 @@ public class MenuItemPagesController : ApiControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult> GetAll([FromQuery] Guid? menuCategoryId, [FromQuery] string? status)
+    public async Task<ActionResult> GetAll([FromQuery] Guid? menuCategoryId, [FromQuery] string? status, [FromQuery] Guid? menuItemId)
     {
         if (!string.Equals(status, "published", StringComparison.OrdinalIgnoreCase))
         {
             status = "published";
         }
 
-        var pages = await _store.GetMenuItemPagesAsync(menuCategoryId, status);
+        var pages = await _store.GetMenuItemPagesAsync(menuCategoryId: menuCategoryId, status: status, menuItemId: menuItemId);
         return Ok(new { data = pages });
     }
 
     [HttpGet("/api/admin/pages")]
     [Authorize]
     [EnableRateLimiting("admin")]
-    public async Task<ActionResult> GetAllAdmin([FromQuery] Guid? menuCategoryId, [FromQuery] string? status)
+    public async Task<ActionResult> GetAllAdmin([FromQuery] Guid? menuCategoryId, [FromQuery] string? status, [FromQuery] Guid? menuItemId)
     {
-        var pages = await _store.GetMenuItemPagesAsync(menuCategoryId, status);
+        var pages = await _store.GetMenuItemPagesAsync(menuCategoryId: menuCategoryId, status: status, menuItemId: menuItemId);
         return Ok(new { data = pages });
     }
 
