@@ -5,13 +5,6 @@ namespace simplebiztoolkit_api.Services;
 
 public interface IContentStore
 {
-    IEnumerable<Article> GetArticles(string? status, bool includeAll);
-    Article? GetArticleById(Guid id);
-    Article? GetArticleBySlug(string slug);
-    Article AddArticle(CreateArticleDto dto);
-    Article? UpdateArticle(Guid id, CreateArticleDto dto);
-    bool DeleteArticle(Guid id);
-
     IEnumerable<ProductCategory> GetCategories();
     ProductCategory? GetCategoryById(Guid id);
     ProductCategory? GetCategoryBySlug(string slug);
