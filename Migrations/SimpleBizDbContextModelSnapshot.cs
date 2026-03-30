@@ -22,77 +22,6 @@ namespace simplebiztoolkit_api.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("simplebiztoolkit_api.Models.Article", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Badges")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CanonicalUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Category")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Content")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("DateISO")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DateModified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FeaturedImage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("HeaderImage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OgImage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ReadingMinutes")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SeoDescription")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SeoTitle")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Subtitle")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Slug")
-                        .IsUnique();
-
-                    b.HasIndex("Status");
-
-                    b.ToTable("Articles");
-                });
-
             modelBuilder.Entity("simplebiztoolkit_api.Models.FeaturedProduct", b =>
                 {
                     b.Property<Guid>("Id")
@@ -159,6 +88,172 @@ namespace simplebiztoolkit_api.Migrations
                         .IsUnique();
 
                     b.ToTable("Images");
+                });
+
+            modelBuilder.Entity("simplebiztoolkit_api.Models.MenuCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("MenuItemId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuItemId");
+
+                    b.ToTable("MenuCategories");
+                });
+
+            modelBuilder.Entity("simplebiztoolkit_api.Models.MenuItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MenuItems");
+                });
+
+            modelBuilder.Entity("simplebiztoolkit_api.Models.MenuItemPage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CanonicalUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DateISO")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("FeaturedImageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("HeaderImageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("MenuCategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("MenuItemId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("OgImage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Subtitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FeaturedImageId");
+
+                    b.HasIndex("HeaderImageId");
+
+                    b.HasIndex("MenuCategoryId");
+
+                    b.HasIndex("MenuItemId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("MenuItemPages");
+                });
+
+            modelBuilder.Entity("simplebiztoolkit_api.Models.MenuLayoutSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("MenuKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("OrderedMenuItemIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)");
+
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuKey")
+                        .IsUnique();
+
+                    b.ToTable("MenuLayoutSettings");
                 });
 
             modelBuilder.Entity("simplebiztoolkit_api.Models.Product", b =>
@@ -247,113 +342,46 @@ namespace simplebiztoolkit_api.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("simplebiztoolkit_api.Models.MenuItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("MenuItems");
-                });
-
             modelBuilder.Entity("simplebiztoolkit_api.Models.MenuCategory", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.HasOne("simplebiztoolkit_api.Models.MenuItem", "MenuItem")
+                        .WithMany("Categories")
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Property<Guid>("MenuItemId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MenuItemId");
-
-                    b.ToTable("MenuCategories");
+                    b.Navigation("MenuItem");
                 });
 
             modelBuilder.Entity("simplebiztoolkit_api.Models.MenuItemPage", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.HasOne("simplebiztoolkit_api.Models.ImageAsset", "FeaturedImageAsset")
+                        .WithMany()
+                        .HasForeignKey("FeaturedImageId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.Property<string>("Badges")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.HasOne("simplebiztoolkit_api.Models.ImageAsset", "HeaderImageAsset")
+                        .WithMany()
+                        .HasForeignKey("HeaderImageId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.Property<string>("CanonicalUrl")
-                        .HasColumnType("nvarchar(max)");
+                    b.HasOne("simplebiztoolkit_api.Models.MenuCategory", "MenuCategory")
+                        .WithMany("Pages")
+                        .HasForeignKey("MenuCategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Property<string>("Category")
-                        .HasColumnType("nvarchar(max)");
+                    b.HasOne("simplebiztoolkit_api.Models.MenuItem", "MenuItem")
+                        .WithMany()
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Property<string>("Content")
-                        .HasColumnType("nvarchar(max)");
+                    b.Navigation("FeaturedImageAsset");
 
-                    b.Property<DateTime>("DateISO")
-                        .HasColumnType("datetime2");
+                    b.Navigation("HeaderImageAsset");
 
-                    b.Property<DateTime>("DateModified")
-                        .HasColumnType("datetime2");
+                    b.Navigation("MenuCategory");
 
-                    b.Property<string>("FeaturedImage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("HeaderImage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("MenuCategoryId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("ReadingMinutes")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SeoDescription")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SeoTitle")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Subtitle")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MenuCategoryId");
-
-                    b.HasIndex("Slug")
-                        .IsUnique();
-
-                    b.ToTable("MenuItemPages");
+                    b.Navigation("MenuItem");
                 });
 
             modelBuilder.Entity("simplebiztoolkit_api.Models.Product", b =>
@@ -365,6 +393,16 @@ namespace simplebiztoolkit_api.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("simplebiztoolkit_api.Models.MenuCategory", b =>
+                {
+                    b.Navigation("Pages");
+                });
+
+            modelBuilder.Entity("simplebiztoolkit_api.Models.MenuItem", b =>
+                {
+                    b.Navigation("Categories");
                 });
 
             modelBuilder.Entity("simplebiztoolkit_api.Models.ProductCategory", b =>
