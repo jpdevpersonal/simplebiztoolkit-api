@@ -185,8 +185,8 @@ builder.Services.AddScoped<IContentStore, EfContentStore>();
 builder.Services.AddScoped<IMenuStore, EfMenuStore>();
 builder.Services.AddSingleton<IImageStorageService, AzureBlobImageStorageService>();
 builder.Services.AddSingleton<IAuthService, AuthService>();
-builder.Services.AddSingleton<IRevalidationService, RevalidationService>();
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<IRevalidationService, RevalidationService>();
 
 var app = builder.Build();
 var startupLogger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");

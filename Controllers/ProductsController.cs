@@ -10,10 +10,12 @@ namespace simplebiztoolkit_api.Controllers;
 public class ProductsController : ApiControllerBase
 {
     private readonly IContentStore _store;
+    private readonly IRevalidationService _revalidationService;
 
-    public ProductsController(IContentStore store)
+    public ProductsController(IContentStore store, IRevalidationService revalidationService)
     {
         _store = store;
+        _revalidationService = revalidationService;
     }
 
     [HttpGet("categories")]
@@ -124,6 +126,7 @@ public class ProductsController : ApiControllerBase
         }
 
         var product = _store.AddProduct(dto);
+        TriggerRevalidation(GetProductRevalidationPaths(product.CategoryId, product.Slug));
         return Ok(new { data = product });
     }
 
@@ -137,11 +140,21 @@ public class ProductsController : ApiControllerBase
             return await ErrorResponse("Title and slug are required.", StatusCodes.Status400BadRequest);
         }
 
+        var existingProduct = _store.GetProductById(id);
+        if (existingProduct == null)
+        {
+            return await ErrorResponse("Product not found", StatusCodes.Status404NotFound);
+        }
+
         var product = _store.UpdateProduct(id, dto);
         if (product == null)
         {
             return await ErrorResponse("Product not found", StatusCodes.Status404NotFound);
         }
+
+        TriggerRevalidation(
+            GetProductRevalidationPaths(existingProduct.CategoryId, existingProduct.Slug)
+                .Concat(GetProductRevalidationPaths(product.CategoryId, product.Slug)));
 
         return Ok(new { data = product });
     }
@@ -151,11 +164,19 @@ public class ProductsController : ApiControllerBase
     [EnableRateLimiting("admin")]
     public async Task<ActionResult> DeleteProduct(Guid id)
     {
+        var existingProduct = _store.GetProductById(id);
+        if (existingProduct == null)
+        {
+            return await ErrorResponse("Product not found", StatusCodes.Status404NotFound);
+        }
+
         var removed = _store.DeleteProduct(id);
         if (!removed)
         {
             return await ErrorResponse("Product not found", StatusCodes.Status404NotFound);
         }
+
+        TriggerRevalidation(GetProductRevalidationPaths(existingProduct.CategoryId, existingProduct.Slug));
 
         return Ok(new { success = true });
     }
@@ -171,6 +192,7 @@ public class ProductsController : ApiControllerBase
         }
 
         var category = _store.AddCategory(dto);
+        TriggerRevalidation(GetCategoryRevalidationPaths(category.Slug));
         return Ok(new { data = category });
     }
 
@@ -184,11 +206,21 @@ public class ProductsController : ApiControllerBase
             return await ErrorResponse("Slug and name are required.", StatusCodes.Status400BadRequest);
         }
 
+        var existingCategory = _store.GetCategoryById(id);
+        if (existingCategory == null)
+        {
+            return await ErrorResponse("Category not found", StatusCodes.Status404NotFound);
+        }
+
         var category = _store.UpdateCategory(id, dto);
         if (category == null)
         {
             return await ErrorResponse("Category not found", StatusCodes.Status404NotFound);
         }
+
+        TriggerRevalidation(
+            GetCategoryRevalidationPaths(existingCategory.Slug)
+                .Concat(GetCategoryRevalidationPaths(category.Slug)));
 
         return Ok(new { data = category });
     }
@@ -198,14 +230,62 @@ public class ProductsController : ApiControllerBase
     [EnableRateLimiting("admin")]
     public async Task<ActionResult> Delete(Guid id)
     {
+        var existingCategory = _store.GetCategoryById(id);
+        if (existingCategory == null)
+        {
+            return await ErrorResponse("Category not found", StatusCodes.Status404NotFound);
+        }
+
         var removed = _store.DeleteCategory(id);
         if (!removed)
         {
             return await ErrorResponse("Category not found", StatusCodes.Status404NotFound);
         }
 
+        TriggerRevalidation(GetCategoryRevalidationPaths(existingCategory.Slug));
+
         return Ok(new { success = true });
     }
+
+    private IEnumerable<string> GetProductRevalidationPaths(Guid categoryId, string productSlug)
+    {
+        var categorySlug = _store.GetCategoryById(categoryId)?.Slug;
+        if (string.IsNullOrWhiteSpace(categorySlug) || string.IsNullOrWhiteSpace(productSlug))
+        {
+            return GetCategoryRevalidationPaths(categorySlug);
+        }
+
+        return GetCategoryRevalidationPaths(categorySlug)
+            .Concat([$"/templates/{NormalizePathSegment(categorySlug)}/{NormalizePathSegment(productSlug)}"]);
+    }
+
+    private static IEnumerable<string> GetCategoryRevalidationPaths(string? categorySlug)
+    {
+        if (string.IsNullOrWhiteSpace(categorySlug))
+        {
+            return [];
+        }
+
+        return [$"/templates/{NormalizePathSegment(categorySlug)}"];
+    }
+
+    private void TriggerRevalidation(IEnumerable<string> paths)
+    {
+        var revalidationPaths = paths
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (revalidationPaths.Length == 0)
+        {
+            return;
+        }
+
+        _ = Task.Run(() => _revalidationService.RevalidatePathsAsync(revalidationPaths));
+    }
+
+    private static string NormalizePathSegment(string value)
+        => value.Trim().Trim('/');
 
 }
 

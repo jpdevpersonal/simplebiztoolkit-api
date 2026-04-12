@@ -23,17 +23,20 @@ public class MenuItemPagesController : ApiControllerBase
     private readonly SimpleBizDbContext _db;
     private readonly IMenuStore _store;
     private readonly IImageStorageService _imageStorageService;
+    private readonly IRevalidationService _revalidationService;
     private readonly ILogger<MenuItemPagesController> _logger;
 
     public MenuItemPagesController(
         SimpleBizDbContext db,
         IMenuStore store,
         IImageStorageService imageStorageService,
+        IRevalidationService revalidationService,
         ILogger<MenuItemPagesController> logger)
     {
         _db = db;
         _store = store;
         _imageStorageService = imageStorageService;
+        _revalidationService = revalidationService;
         _logger = logger;
     }
 
@@ -98,6 +101,7 @@ public class MenuItemPagesController : ApiControllerBase
         }
 
         var page = await _store.AddMenuItemPageAsync(dto);
+        TriggerRevalidation(GetPageRevalidationPaths(page.Slug));
         return Ok(new { data = page });
     }
 
@@ -112,11 +116,19 @@ public class MenuItemPagesController : ApiControllerBase
             return await ErrorResponse("Slug and title are required.", StatusCodes.Status400BadRequest);
         }
 
+        var existingPage = await _store.GetMenuItemPageByIdAsync(id);
+        if (existingPage == null)
+        {
+            return await ErrorResponse("Page not found", StatusCodes.Status404NotFound);
+        }
+
         var page = await _store.UpdateMenuItemPageAsync(id, dto);
         if (page == null)
         {
             return await ErrorResponse("Page not found", StatusCodes.Status404NotFound);
         }
+
+        TriggerRevalidation(GetPageRevalidationPaths(existingPage.Slug).Concat(GetPageRevalidationPaths(page.Slug)));
 
         return Ok(new { data = page });
     }
@@ -166,6 +178,7 @@ public class MenuItemPagesController : ApiControllerBase
             }
 
             var page = await _store.AddMenuItemPageAsync(pageDto);
+            TriggerRevalidation(GetPageRevalidationPaths(page.Slug));
             return Ok(new { data = page });
         }
         catch
@@ -190,6 +203,12 @@ public class MenuItemPagesController : ApiControllerBase
         if (string.IsNullOrWhiteSpace(dto.Slug) || string.IsNullOrWhiteSpace(dto.Title))
         {
             return await ErrorResponse("Slug and title are required.", StatusCodes.Status400BadRequest);
+        }
+
+        var existingPage = await _store.GetMenuItemPageByIdAsync(id);
+        if (existingPage == null)
+        {
+            return await ErrorResponse("Page not found", StatusCodes.Status404NotFound);
         }
 
         var featuredImageValidation = ValidateUploadedFile(dto.FeaturedImageFile, requireFile: false);
@@ -229,6 +248,8 @@ public class MenuItemPagesController : ApiControllerBase
                 return await ErrorResponse("Page not found", StatusCodes.Status404NotFound);
             }
 
+            TriggerRevalidation(GetPageRevalidationPaths(existingPage.Slug).Concat(GetPageRevalidationPaths(page.Slug)));
+
             return Ok(new { data = page });
         }
         catch
@@ -247,13 +268,31 @@ public class MenuItemPagesController : ApiControllerBase
     [EnableRateLimiting("admin")]
     public async Task<ActionResult> Delete(Guid id)
     {
+        var existingPage = await _store.GetMenuItemPageByIdAsync(id);
+        if (existingPage == null)
+        {
+            return await ErrorResponse("Page not found", StatusCodes.Status404NotFound);
+        }
+
         var removed = await _store.DeleteMenuItemPageAsync(id);
         if (!removed)
         {
             return await ErrorResponse("Page not found", StatusCodes.Status404NotFound);
         }
 
+        TriggerRevalidation(GetPageRevalidationPaths(existingPage.Slug));
+
         return Ok(new { success = true });
+    }
+
+    private static IEnumerable<string> GetPageRevalidationPaths(string? slug)
+    {
+        if (string.IsNullOrWhiteSpace(slug))
+        {
+            return [];
+        }
+
+        return [NormalizePagePath(slug)];
     }
 
     private CreateMenuItemPageDto MapToCreateDto(CreateMenuItemPageFormDto dto)
@@ -359,6 +398,35 @@ public class MenuItemPagesController : ApiControllerBase
                 && header[11] == 0x50,
             _ => false
         };
+    }
+
+    private void TriggerRevalidation(IEnumerable<string> paths)
+    {
+        var revalidationPaths = paths
+            .Where(path => !string.IsNullOrWhiteSpace(path))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (revalidationPaths.Length == 0)
+        {
+            return;
+        }
+
+        _ = Task.Run(() => _revalidationService.RevalidatePathsAsync(revalidationPaths));
+    }
+
+    private static string NormalizePagePath(string slug)
+    {
+        var trimmedSlug = slug.Trim();
+        if (trimmedSlug == "/")
+        {
+            return trimmedSlug;
+        }
+
+        trimmedSlug = trimmedSlug.Trim('/');
+        return string.IsNullOrWhiteSpace(trimmedSlug)
+            ? "/"
+            : $"/{trimmedSlug}";
     }
 
     private async Task TryDeleteBlobAsync(string blobName, CancellationToken cancellationToken)
