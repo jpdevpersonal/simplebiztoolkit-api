@@ -19,6 +19,7 @@ public class SimpleBizDbContext : DbContext
     public DbSet<MenuCategory> MenuCategories => Set<MenuCategory>();
     public DbSet<MenuItemPage> MenuItemPages => Set<MenuItemPage>();
     public DbSet<MenuLayoutSettings> MenuLayoutSettings => Set<MenuLayoutSettings>();
+    public DbSet<Faq> Faqs => Set<Faq>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -133,6 +134,23 @@ public class SimpleBizDbContext : DbContext
                 .IsRequired();
             entity.Property(layout => layout.UpdatedBy)
                 .HasMaxLength(320);
+        });
+
+        modelBuilder.Entity<Faq>(entity =>
+        {
+            entity.HasKey(f => f.Id);
+            entity.Property(f => f.Question).IsRequired().HasMaxLength(500);
+            entity.Property(f => f.Answer).IsRequired();
+            entity.Property(f => f.Group).HasMaxLength(200);
+            entity.Property(f => f.Status)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasDefaultValue("draft");
+            entity.Property(f => f.SortOrder).HasDefaultValue(0);
+            entity.Property(f => f.CreatedUtc).HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.Property(f => f.UpdatedUtc).HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.HasIndex(f => new { f.Group, f.SortOrder })
+                .HasDatabaseName("IX_Faqs_Group_SortOrder");
         });
 
         // Note: seeding via migrations was removed here to avoid referencing a missing EfTsSeedLoader.
