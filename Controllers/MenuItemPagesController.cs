@@ -314,7 +314,8 @@ public class MenuItemPagesController : ApiControllerBase
             SeoTitle = dto.SeoTitle,
             SeoDescription = dto.SeoDescription,
             OgImage = dto.OgImage,
-            CanonicalUrl = dto.CanonicalUrl
+            CanonicalUrl = dto.CanonicalUrl,
+            ShowLastUpdated = dto.ShowLastUpdated
         };
 
     private async Task<ImageAsset> SaveImageAssetAsync(IFormFile file, CancellationToken cancellationToken)

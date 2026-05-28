@@ -233,6 +233,7 @@ public class EfMenuStore : IMenuStore
             SeoDescription = dto.SeoDescription,
             OgImage = dto.OgImage,
             CanonicalUrl = dto.CanonicalUrl,
+            ShowLastUpdated = dto.ShowLastUpdated ?? true,
             DateISO = now,
             DateModified = System.DateTime.Now
         };
@@ -295,6 +296,10 @@ public class EfMenuStore : IMenuStore
         existing.SeoDescription = dto.SeoDescription;
         existing.OgImage = dto.OgImage;
         existing.CanonicalUrl = dto.CanonicalUrl;
+        if (dto.ShowLastUpdated.HasValue)
+        {
+            existing.ShowLastUpdated = dto.ShowLastUpdated.Value;
+        }
         existing.DateModified = System.DateTime.Now;
 
         await _db.SaveChangesAsync();

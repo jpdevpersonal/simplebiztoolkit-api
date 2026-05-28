@@ -92,6 +92,9 @@ public class SimpleBizDbContext : DbContext
             entity.HasIndex(p => p.FeaturedImageId);
             entity.HasIndex(p => p.HeaderImageId);
             entity.Property(p => p.DateISO).HasConversion(dateOnlyConverter);
+            entity.Property(p => p.ShowLastUpdated)
+                .HasDefaultValue(true)
+                .IsRequired();
             entity.HasOne(p => p.MenuCategory)
                 .WithMany(c => c.Pages)
                 .HasForeignKey(p => p.MenuCategoryId)
