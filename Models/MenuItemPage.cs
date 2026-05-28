@@ -23,6 +23,7 @@ public class MenuItemPage
     public string? SeoDescription { get; set; }
     public string? OgImage { get; set; }
     public string? CanonicalUrl { get; set; }
+    public bool ShowLastUpdated { get; set; } = true;
 
     [NotMapped]
     public string? FeaturedImage => FeaturedImageAsset?.Url;
