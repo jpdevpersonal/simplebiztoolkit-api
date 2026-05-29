@@ -22,6 +22,7 @@ public class CreateMenuItemPageDto
     public string? SeoDescription { get; set; }
     public string? OgImage { get; set; }
     public string? CanonicalUrl { get; set; }
+    public bool? ShowLastUpdated { get; set; }
 
     public MenuCategory? MenuCategory { get; set; }
 }
