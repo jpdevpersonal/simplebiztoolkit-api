@@ -21,6 +21,7 @@ public class CreateMenuItemPageFormDto
     public string? SeoDescription { get; set; }
     public string? OgImage { get; set; }
     public string? CanonicalUrl { get; set; }
+    public bool? ShowLastUpdated { get; set; }
     public IFormFile? FeaturedImageFile { get; set; }
     public IFormFile? HeaderImageFile { get; set; }
 }
