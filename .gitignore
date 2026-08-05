@@ -74,11 +74,22 @@ wwwroot/lib/
 
 # Azure Web App publish settings
 .publishsettings
+*.publishsettings
+*.pubxml
+*.pubxml.user
 
 # Local sensitive files
 secrets.json
 appsettings.*.Local.json
 .env
+.env.*
+local.settings.json
+*.pfx
+*.p12
+*.pem
+*.key
+*.cer
+*.crt
 
 # SQL Server files
 *.mdf

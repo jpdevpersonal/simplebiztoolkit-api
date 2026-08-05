@@ -17,10 +17,18 @@ public class AuthService : IAuthService
 
     public AuthUser? ValidateCredentials(string email, string password)
     {
-        var adminEmail = _config["Auth:AdminEmail"] ?? "admin@example.com";
-        var adminPassword = _config["Auth:AdminPassword"] ?? "password123";
-        var adminName = _config["Auth:AdminName"] ?? "Admin User";
-        var adminId = _config["Auth:AdminId"] ?? "admin";
+        var adminEmail = _config["Auth:AdminEmail"];
+        var adminPassword = _config["Auth:AdminPassword"];
+        var adminName = _config["Auth:AdminName"];
+        var adminId = _config["Auth:AdminId"];
+
+        if (string.IsNullOrWhiteSpace(adminEmail)
+            || string.IsNullOrWhiteSpace(adminPassword)
+            || string.IsNullOrWhiteSpace(adminName)
+            || string.IsNullOrWhiteSpace(adminId))
+        {
+            return null;
+        }
 
         if (!string.Equals(adminEmail, email, StringComparison.OrdinalIgnoreCase))
         {
