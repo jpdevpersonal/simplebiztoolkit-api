@@ -20,6 +20,7 @@ public class SimpleBizDbContext : DbContext
     public DbSet<MenuItemPage> MenuItemPages => Set<MenuItemPage>();
     public DbSet<MenuLayoutSettings> MenuLayoutSettings => Set<MenuLayoutSettings>();
     public DbSet<Faq> Faqs => Set<Faq>();
+    public DbSet<Stat> Stats => Set<Stat>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -154,6 +155,31 @@ public class SimpleBizDbContext : DbContext
             entity.Property(f => f.UpdatedUtc).HasDefaultValueSql("SYSUTCDATETIME()");
             entity.HasIndex(f => new { f.Group, f.SortOrder })
                 .HasDatabaseName("IX_Faqs_Group_SortOrder");
+        });
+
+        modelBuilder.Entity<Stat>(entity =>
+        {
+            entity.ToTable("Stats", "dbo");
+            entity.HasKey(stat => stat.Id);
+            entity.Property(stat => stat.Id)
+                .HasColumnName("id")
+                .UseIdentityColumn();
+            entity.Property(stat => stat.Name)
+                .HasColumnName("name")
+                .HasColumnType("varchar(50)")
+                .IsUnicode(false)
+                .HasMaxLength(50)
+                .IsRequired();
+            entity.Property(stat => stat.Value)
+                .HasColumnName("value")
+                .HasColumnType("nvarchar(10)")
+                .HasMaxLength(10)
+                .IsRequired();
+            entity.Property(stat => stat.Hidden)
+                .HasColumnName("hidden")
+                .HasColumnType("bit")
+                .IsRequired(false);
+            entity.HasIndex(stat => stat.Name).IsUnique();
         });
 
         // Note: seeding via migrations was removed here to avoid referencing a missing EfTsSeedLoader.

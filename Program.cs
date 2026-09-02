@@ -184,6 +184,7 @@ builder.Services.Configure<AzureBlobStorageOptions>(options =>
 builder.Services.AddScoped<IContentStore, EfContentStore>();
 builder.Services.AddScoped<IMenuStore, EfMenuStore>();
 builder.Services.AddScoped<IFaqService, FaqService>();
+builder.Services.AddScoped<IStatService, StatService>();
 builder.Services.AddSingleton<IImageStorageService, AzureBlobImageStorageService>();
 builder.Services.AddSingleton<IAuthService, AuthService>();
 builder.Services.AddHttpClient();
