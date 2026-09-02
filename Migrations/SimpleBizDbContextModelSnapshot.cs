@@ -396,6 +396,40 @@ namespace simplebiztoolkit_api.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("simplebiztoolkit_api.Models.Stat", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool?>("Hidden")
+                        .HasColumnType("bit")
+                        .HasColumnName("hidden");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .IsUnicode(false)
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Stats", "dbo");
+                });
+
             modelBuilder.Entity("simplebiztoolkit_api.Models.MenuCategory", b =>
                 {
                     b.HasOne("simplebiztoolkit_api.Models.MenuItem", "MenuItem")
