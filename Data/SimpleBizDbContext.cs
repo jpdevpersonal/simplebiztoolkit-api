@@ -11,10 +11,16 @@ public class SimpleBizDbContext : DbContext
     {
     }
 
-    public DbSet<Article> Articles => Set<Article>();
     public DbSet<ProductCategory> Categories => Set<ProductCategory>();
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<ImageAsset> Images => Set<ImageAsset>();
     public DbSet<FeaturedProduct> FeaturedProducts => Set<FeaturedProduct>();
+    public DbSet<MenuItem> MenuItems => Set<MenuItem>();
+    public DbSet<MenuCategory> MenuCategories => Set<MenuCategory>();
+    public DbSet<MenuItemPage> MenuItemPages => Set<MenuItemPage>();
+    public DbSet<MenuLayoutSettings> MenuLayoutSettings => Set<MenuLayoutSettings>();
+    public DbSet<Faq> Faqs => Set<Faq>();
+    public DbSet<Stat> Stats => Set<Stat>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,16 +33,6 @@ public class SimpleBizDbContext : DbContext
             json => string.IsNullOrWhiteSpace(json)
                 ? new List<string>()
                 : JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>());
-
-        modelBuilder.Entity<Article>(entity =>
-        {
-            entity.HasKey(article => article.Id);
-            entity.HasIndex(article => article.Slug).IsUnique();
-            entity.HasIndex(article => article.Status);
-            entity.Property(article => article.DateISO).HasConversion(dateOnlyConverter);
-            entity.Property(article => article.DateModified).HasConversion(dateOnlyConverter);
-            entity.Property(article => article.Badges).HasConversion(listConverter);
-        });
 
         modelBuilder.Entity<ProductCategory>(entity =>
         {
@@ -61,6 +57,129 @@ public class SimpleBizDbContext : DbContext
         {
             entity.HasKey(featured => featured.Id);
             entity.Property(featured => featured.Bullets).HasConversion(listConverter);
+        });
+
+        modelBuilder.Entity<ImageAsset>(entity =>
+        {
+            entity.HasKey(image => image.Id);
+            entity.Property(image => image.Url).IsRequired();
+            entity.Property(image => image.BlobName).IsRequired();
+            entity.HasIndex(image => image.BlobName).IsUnique();
+        });
+
+        modelBuilder.Entity<MenuItem>(entity =>
+        {
+            entity.HasKey(m => m.Id);
+            entity.Property(m => m.Title).IsRequired();
+        });
+
+        modelBuilder.Entity<MenuCategory>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.HasIndex(c => c.MenuItemId);
+            entity.Property(c => c.Title).IsRequired();
+            entity.HasOne(c => c.MenuItem)
+                .WithMany(m => m.Categories)
+                .HasForeignKey(c => c.MenuItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<MenuItemPage>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.HasIndex(p => p.Slug).IsUnique();
+            entity.HasIndex(p => p.MenuCategoryId);
+            entity.HasIndex(p => p.MenuItemId);
+            entity.HasIndex(p => p.FeaturedImageId);
+            entity.HasIndex(p => p.HeaderImageId);
+            entity.Property(p => p.DateISO).HasConversion(dateOnlyConverter);
+            entity.Property(p => p.ShowLastUpdated)
+                .HasDefaultValue(true)
+                .IsRequired();
+            entity.HasOne(p => p.MenuCategory)
+                .WithMany(c => c.Pages)
+                .HasForeignKey(p => p.MenuCategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(p => p.MenuItem)
+                .WithMany()
+                .HasForeignKey(p => p.MenuItemId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(p => p.FeaturedImageAsset)
+                .WithMany()
+                .HasForeignKey(p => p.FeaturedImageId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(p => p.HeaderImageAsset)
+                .WithMany()
+                .HasForeignKey(p => p.HeaderImageId)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<MenuLayoutSettings>(entity =>
+        {
+            entity.HasKey(layout => layout.Id);
+            entity.Property(layout => layout.Id)
+                .HasDefaultValueSql("NEWSEQUENTIALID()");
+            entity.Property(layout => layout.MenuKey)
+                .HasMaxLength(100)
+                .IsRequired();
+            entity.HasIndex(layout => layout.MenuKey).IsUnique();
+            entity.Property(layout => layout.OrderedMenuItemIds)
+                .HasConversion(listConverter)
+                .HasColumnType("nvarchar(max)")
+                .IsRequired();
+            entity.Property(layout => layout.IsActive)
+                .HasDefaultValue(true)
+                .IsRequired();
+            entity.Property(layout => layout.Version)
+                .HasDefaultValue(1)
+                .IsRequired();
+            entity.Property(layout => layout.UpdatedBy)
+                .HasMaxLength(320);
+        });
+
+        modelBuilder.Entity<Faq>(entity =>
+        {
+            entity.HasKey(f => f.Id);
+            entity.Property(f => f.Question).IsRequired().HasMaxLength(500);
+            entity.Property(f => f.Answer).IsRequired();
+            entity.Property(f => f.Group).HasMaxLength(200);
+            entity.Property(f => f.Status)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasDefaultValue("draft");
+            entity.Property(f => f.SortOrder).HasDefaultValue(0);
+            entity.Property(f => f.CreatedUtc).HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.Property(f => f.UpdatedUtc).HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.HasIndex(f => new { f.Group, f.SortOrder })
+                .HasDatabaseName("IX_Faqs_Group_SortOrder");
+        });
+
+        modelBuilder.Entity<Stat>(entity =>
+        {
+            entity.ToTable("Stats", "dbo");
+            entity.HasKey(stat => stat.Id);
+            entity.Property(stat => stat.Id)
+                .HasColumnName("id")
+                .UseIdentityColumn();
+            entity.Property(stat => stat.Name)
+                .HasColumnName("name")
+                .HasColumnType("varchar(50)")
+                .IsUnicode(false)
+                .HasMaxLength(50)
+                .IsRequired();
+            entity.Property(stat => stat.Value)
+                .HasColumnName("value")
+                .HasColumnType("nvarchar(10)")
+                .HasMaxLength(10)
+                .IsRequired();
+            entity.Property(stat => stat.Hidden)
+                .HasColumnName("hidden")
+                .HasColumnType("bit")
+                .IsRequired(false);
+            entity.HasIndex(stat => stat.Name).IsUnique();
         });
 
         // Note: seeding via migrations was removed here to avoid referencing a missing EfTsSeedLoader.
