@@ -15,4 +15,8 @@ public class Product
     public Guid CategoryId { get; set; }
     public string Status { get; set; } = "draft";
     public ProductCategory? Category { get; set; }
+    public long? EtsyListingId {get; set;}
+    public string? PriceCurrency { get; set; }
+    public DateTime? PriceLastSyncedUtc { get; set; }
+    public string? BuyerPrice { get; set; }
 }

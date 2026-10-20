@@ -17,7 +17,7 @@ namespace simplebiztoolkit_api.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -320,11 +320,17 @@ namespace simplebiztoolkit_api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("BuyerPrice")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("EtsyListingId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("EtsyUrl")
                         .HasColumnType("nvarchar(max)");
@@ -334,6 +340,12 @@ namespace simplebiztoolkit_api.Migrations
 
                     b.Property<string>("Price")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PriceCurrency")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PriceLastSyncedUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Problem")
                         .HasColumnType("nvarchar(max)");
@@ -411,8 +423,8 @@ namespace simplebiztoolkit_api.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .IsUnicode(false)
                         .HasMaxLength(50)
+                        .IsUnicode(false)
                         .HasColumnType("varchar(50)")
                         .HasColumnName("name");
 
